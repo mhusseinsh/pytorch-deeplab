@@ -93,7 +93,9 @@ def get_data_from_chunk_v2(chunk):
     gt = np.zeros((dim,dim,1,len(chunk)))
     for i,piece in enumerate(chunk):
         flip_p = random.uniform(0, 1)
-        img_temp = cv2.imread(os.path.join(img_path,piece+'.jpg')).astype(float)
+        print img_path, piece
+        #img_temp = cv2.imread(os.path.join(img_path,piece+'.jpg')).astype(float)
+        img_temp = cv2.imread(os.path.join(img_path,piece+'.png')).astype(float)
         img_temp = cv2.resize(img_temp,(321,321)).astype(float)
         img_temp = scale_im(img_temp,scale)
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008
@@ -103,6 +105,8 @@ def get_data_from_chunk_v2(chunk):
         images[:,:,:,i] = img_temp
 
         gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
+        print gt_temp.shape
+        print raw_input()
         gt_temp[gt_temp == 255] = 0
         gt_temp = cv2.resize(gt_temp,(321,321) , interpolation = cv2.INTER_NEAREST)
         gt_temp = scale_gt(gt_temp,scale)
@@ -117,12 +121,14 @@ def get_data_from_chunk_v2(chunk):
 
 
 
-def loss_calc(out, label,gpu0):
+def loss_calc(out, label, gpu0):
     """
     This function returns cross entropy loss for semantic segmentation
     """
     # out shape batch_size x channels x h x w -> batch_size x channels x h x w
     # label shape h x w x 1 x batch_size  -> batch_size x 1 x h x w
+    print label.shape
+    raw_input()
     label = label[:,:,0,:].transpose(2,0,1)
     label = torch.from_numpy(label).long()
     label = Variable(label).cuda(gpu0)

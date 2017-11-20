@@ -3,6 +3,9 @@
 +data/img/
 +data/snapshots/
 +data/*.caffemodel
+data/gt/**
+data/img/**
+data/*.pth
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
