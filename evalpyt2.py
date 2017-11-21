@@ -80,11 +80,14 @@ snapPrefix = args['--snapPrefix']
 gt_path = args['--testGTpath']
 img_list = open('data/list/val.txt').readlines()
 
-resize_height = 360
-resize_width = 640
+resize_height = 180
+resize_width = 320
+#resize_height = 512
+#resize_width = 512
 
-for iter in range(1,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
-    saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))
+#for iter in range(1,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
+for iter in range(1):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
+    saved_state_dict = torch.load(os.path.join('./data/snapshots/VOC12_scenes_200000.pth'))
     if counter==0:
         print snapPrefix
     counter+=1
