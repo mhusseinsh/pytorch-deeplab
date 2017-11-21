@@ -116,15 +116,8 @@ def get_data_from_chunk_v2(chunk):
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675
         img_temp = flip(img_temp,flip_p)
         images[:,:,:,i] = img_temp
-<<<<<<< HEAD
-        
-        #gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
-        print piece
-        gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))
-=======
 
         gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))[:, new_weidth:-new_weidth]
->>>>>>> a949c2714aba0f5d09ba3a8553ffce754d1c4f72
         gt_temp[gt_temp == 255] = 0
         #gt_temp = cv2.resize(gt_temp,(321,321),interpolation=cv2.INTER_NEAREST)
         gt_temp = cv2.resize(gt_temp,(resize_width,resize_height),interpolation=cv2.INTER_NEAREST)
