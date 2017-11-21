@@ -99,7 +99,8 @@ for iter in range(1):   #TODO set the (different iteration)models that you want 
         img = np.zeros((resize_height,resize_width,3));
         img_original = cv2.imread(os.path.join(im_path,i[:-1]+'.png'))
         new_weidth = int((img_original.shape[1]-(img_original.shape[0]*16//9))//2)
-        img_original = img_original[:,new_weidth:-new_weidth]
+        if new_weidth != 0
+            img_original = img_original[:,new_weidth:-new_weidth]
         img_temp = cv2.resize(img_original,(resize_width,resize_height))
         img_temp.astype(float)
 
@@ -107,8 +108,8 @@ for iter in range(1):   #TODO set the (different iteration)models that you want 
         img_temp[:,:,1] = img_temp[:,:,1] - 116.669  # G
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675  # R
         img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
-        #gt = cv2.imread(os.path.join(gt_path,i[:-1]+'.png'),0)
-        gt = np.array(Image.open(os.path.join(gt_path,i[:-1]+'.png')))[:,new_weidth:-new_weidth]
+        if new_weidth != 0:
+            gt = np.array(Image.open(os.path.join(gt_path,i[:-1]+'.png')))[:,new_weidth:-new_weidth]
         #gt[gt==255] = 0
         gt = cv2.resize(gt, (resize_width, resize_height), interpolation = cv2.INTER_NEAREST)
         output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
