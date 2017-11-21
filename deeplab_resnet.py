@@ -57,7 +57,7 @@ class Bottleneck(nn.Module):
         super(Bottleneck, self).__init__()
         self.conv1 = nn.Conv2d(inplanes, planes, kernel_size=1, stride=stride, bias=False) # change
         self.bn1 = nn.BatchNorm2d(planes,affine = affine_par)
-	for i in self.bn1.parameters():
+        for i in self.bn1.parameters():
             i.requires_grad = False
         padding = 1
         if dilation_ == 2:
@@ -105,18 +105,18 @@ class Classifier_Module(nn.Module):
 
     def __init__(self,dilation_series,padding_series,NoLabels):
         super(Classifier_Module, self).__init__()
-	self.conv2d_list = nn.ModuleList()
-	for dilation,padding in zip(dilation_series,padding_series):
-	    self.conv2d_list.append(nn.Conv2d(2048,NoLabels,kernel_size=3,stride=1, padding =padding, dilation = dilation,bias = True))
+        self.conv2d_list = nn.ModuleList()
+        for dilation,padding in zip(dilation_series,padding_series):
+            self.conv2d_list.append(nn.Conv2d(2048,NoLabels,kernel_size=3,stride=1, padding =padding, dilation = dilation,bias = True))
 
         for m in self.conv2d_list:
             m.weight.data.normal_(0, 0.01)
 
 
     def forward(self, x):
-	out = self.conv2d_list[0](x)
-	for i in range(len(self.conv2d_list)-1):
-	    out += self.conv2d_list[i+1](x)
+        out = self.conv2d_list[0](x)
+        for i in range(len(self.conv2d_list)-1):
+            out += self.conv2d_list[i+1](x)
         return out
 
 
@@ -136,7 +136,7 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=1, dilation__ = 2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=1, dilation__ = 4)
-	self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
+        self.layer5 = self._make_pred_layer(Classifier_Module, [6,12,18,24],[6,12,18,24],NoLabels)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -166,7 +166,7 @@ class ResNet(nn.Module):
 
         return nn.Sequential(*layers)
     def _make_pred_layer(self,block, dilation_series, padding_series,NoLabels):
-	return block(dilation_series,padding_series,NoLabels)
+        return block(dilation_series,padding_series,NoLabels)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -177,35 +177,34 @@ class ResNet(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
-	x = self.layer5(x)
+        x = self.layer5(x)
 
         return x
 
 class MS_Deeplab(nn.Module):
     def __init__(self,block,NoLabels):
-	super(MS_Deeplab,self).__init__()
-	self.Scale = ResNet(block,[3, 4, 23, 3],NoLabels)   #changed to fix #4 
+        super(MS_Deeplab,self).__init__()
+        self.Scale = ResNet(block,[3, 4, 23, 3],NoLabels)   #changed to fix #4
 
     def forward(self,x):
         input_size = x.size()[2]
-	self.interp1 = nn.UpsamplingBilinear2d(size = (  int(input_size*0.75)+1,  int(input_size*0.75)+1  ))
+        self.interp1 = nn.UpsamplingBilinear2d(size = (  int(input_size*0.75)+1,  int(input_size*0.75)+1  ))
         self.interp2 = nn.UpsamplingBilinear2d(size = (  int(input_size*0.5)+1,   int(input_size*0.5)+1   ))
         self.interp3 = nn.UpsamplingBilinear2d(size = (  outS(input_size),   outS(input_size)   ))
         out = []
         x2 = self.interp1(x)
         x3 = self.interp2(x)
-	out.append(self.Scale(x))	# for original scale
-	out.append(self.interp3(self.Scale(x2)))	# for 0.75x scale
-	out.append(self.Scale(x3))	# for 0.5x scale
+        out.append(self.Scale(x))	# for original scale
+        out.append(self.interp3(self.Scale(x2)))	# for 0.75x scale
+        out.append(self.Scale(x3))	# for 0.5x scale
 
 
         x2Out_interp = out[1]
         x3Out_interp = self.interp3(out[2])
         temp1 = torch.max(out[0],x2Out_interp)
         out.append(torch.max(temp1,x3Out_interp))
-	return out
+        return out
 
 def Res_Deeplab(NoLabels=21):
     model = MS_Deeplab(Bottleneck,NoLabels)
     return model
-

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import pickle
-import deeplab_resnet 
+import deeplab_resnet
 import cv2
 from torch.autograd import Variable
 import torch.optim as optim
@@ -17,9 +17,9 @@ from docopt import docopt
 import timeit
 from PIL import Image
 start = timeit.timeit
-docstr = """Train ResNet-DeepLab on VOC12 (scenes) in pytorch using MSCOCO pretrained initialization 
+docstr = """Train ResNet-DeepLab on VOC12 (scenes) in pytorch using MSCOCO pretrained initialization
 
-Usage: 
+Usage:
     train.py [options]
 
 Options:
@@ -60,7 +60,7 @@ def read_file(path_to_file):
     return img_list
 
 def chunker(seq, size):
- return (seq[pos:pos+size] for pos in xrange(0,len(seq), size))
+    return (seq[pos:pos+size] for pos in xrange(0,len(seq), size))
 
 def resize_label_batch(label, size):
     label_resized = np.zeros((size,size,1,label.shape[3]))
@@ -83,7 +83,7 @@ def scale_im(img_temp,scale):
 def scale_gt(img_temp,scale):
     new_dims = (  int(img_temp.shape[0]*scale),  int(img_temp.shape[1]*scale)   )
     return cv2.resize(img_temp,new_dims,interpolation = cv2.INTER_NEAREST).astype(float)
-   
+
 def get_data_from_chunk_v2(chunk):
     gt_path =  args['--GTpath']
     img_path = args['--IMpath']
@@ -103,7 +103,7 @@ def get_data_from_chunk_v2(chunk):
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675
         img_temp = flip(img_temp,flip_p)
         images[:,:,:,i] = img_temp
-        
+
         #gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
         gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))
         gt_temp[gt_temp == 255] = 0
@@ -132,7 +132,7 @@ def loss_calc(out, label, gpu0):
     m = nn.LogSoftmax()
     criterion = nn.NLLLoss2d()
     out = m(out)
-    
+
     return criterion(out,label)
 
 
@@ -142,9 +142,9 @@ def lr_poly(base_lr, iter,max_iter,power):
 
 def get_1x_lr_params_NOscale(model):
     """
-    This generator returns all the parameters of the net except for 
-    the last classification layer. Note that for each batchnorm layer, 
-    requires_grad is set to False in deeplab_resnet.py, therefore this function does not return 
+    This generator returns all the parameters of the net except for
+    the last classification layer. Note that for each batchnorm layer,
+    requires_grad is set to False in deeplab_resnet.py, therefore this function does not return
     any batchnorm parameter
     """
     b = []
@@ -156,7 +156,7 @@ def get_1x_lr_params_NOscale(model):
     b.append(model.Scale.layer3)
     b.append(model.Scale.layer4)
 
-    
+
     for i in range(len(b)):
         for j in b[i].modules():
             jj = 0
@@ -194,7 +194,7 @@ if int(args['--NoLabels'])!=21:
 
 model.load_state_dict(saved_state_dict)
 
-max_iter = int(args['--maxIter']) 
+max_iter = int(args['--maxIter'])
 batch_size = 1
 weight_decay = float(args['--wtDecay'])
 base_lr = float(args['--lr'])
@@ -224,10 +224,10 @@ for iter in range(max_iter+1):
 
     out = model(images)
     loss = loss_calc(out[0], label[0],gpu0)
-    iter_size = int(args['--iterSize']) 
+    iter_size = int(args['--iterSize'])
     for i in range(len(out)-1):
         loss = loss + loss_calc(out[i+1],label[i+1],gpu0)
-    loss = loss/iter_size 
+    loss = loss/iter_size
     loss.backward()
 
     if iter %1 == 0:
