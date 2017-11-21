@@ -16,6 +16,10 @@ import random
 from docopt import docopt
 import timeit
 from PIL import Image
+from tensorboardX import SummaryWriter
+import torch.nn.functional as F
+
+writer = SummaryWriter()
 start = timeit.timeit
 docstr = """Train ResNet-DeepLab on VOC12 (scenes) in pytorch using MSCOCO pretrained initialization
 
@@ -79,11 +83,11 @@ def flip(I,flip_p):
         return I
 
 def scale_im(img_temp,scale):
-    new_dims = (  int(img_temp.shape[1]*scale),  int(img_temp.shape[0]*scale)   )
+    new_dims = (int(img_temp.shape[1]*scale),int(img_temp.shape[0]*scale))
     return cv2.resize(img_temp,new_dims).astype(float)
 
 def scale_gt(img_temp,scale):
-    new_dims = (  int(img_temp.shape[1]*scale),  int(img_temp.shape[0]*scale)   )
+    new_dims = (int(img_temp.shape[1]*scale),int(img_temp.shape[0]*scale))
     return cv2.resize(img_temp,new_dims,interpolation = cv2.INTER_NEAREST).astype(float)
 
 def get_data_from_chunk_v2(chunk):
@@ -130,7 +134,7 @@ def get_data_from_chunk_v2(chunk):
     images = torch.from_numpy(images).float()
     return images, labels
 
-def loss_calc(out, label, gpu0):
+def loss_calc(out, label, gpu0, iter, count):
     """
     This function returns cross entropy loss for semantic segmentation
     """
@@ -139,11 +143,17 @@ def loss_calc(out, label, gpu0):
     label = label[:,:,0,:].transpose(2,0,1)
     label = torch.from_numpy(label).long()
     label = Variable(label).cuda(gpu0)
-    m = nn.LogSoftmax()
-    criterion = nn.NLLLoss2d()
-    out = m(out)
 
-    return criterion(out,label)
+    #m = nn.LogSoftmax()
+    #criterion = nn.NLLLoss2d()
+    #out = m(out)
+    if iter%20==0 and count==0:
+        writer.add_image('GT'+str(count), label[0]*7, iter)
+        out_img = torch.max(out.data, 1)[1]
+        writer.add_image('OUT'+str(count), out_img[0]*7, iter)
+
+    #return criterion(out,label)
+    return F.nll_loss(F.log_softmax(out),label)
 
 def lr_poly(base_lr, iter,max_iter,power):
     return base_lr*((1-float(iter)/max_iter)**(power))
@@ -189,7 +199,6 @@ def get_10x_lr_params(model):
 if not os.path.exists('data/snapshots'):
     os.makedirs('data/snapshots')
 
-
 model = deeplab_resnet.Res_Deeplab(int(args['--NoLabels']))
 
 saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
@@ -231,16 +240,19 @@ for iter in range(max_iter+1):
     images = Variable(images).cuda(gpu0)
 
     out = model(images)
-    loss = loss_calc(out[0], label[0], gpu0)
+    loss = loss_calc(out[0], label[0], gpu0, iter, 0)
     iter_size = int(args['--iterSize'])
     for i in range(len(out)-1):
-        loss = loss + loss_calc(out[i+1],label[i+1],gpu0)
+        loss = loss + loss_calc(out[i+1], label[i+1], gpu0, iter, i+1)
     loss = loss/iter_size
     loss.backward()
+    if iter%20 == 0:
+        print images.size()
+        writer.add_image('RAW', torch.cat((images[0,2:,:,:],images[0,1:2,:,:],images[0,0:1,:,:]),dim=0).type(torch.LongTensor), iter)
 
     if iter %1 == 0:
         print 'iter = ',iter, 'of',max_iter,'completed, loss = ', iter_size*(loss.data.cpu().numpy())
-
+        writer.add_scalar('loss', iter_size*loss.data[0], iter)
     if iter % iter_size  == 0:
         optimizer.step()
         lr_ = lr_poly(base_lr,iter,max_iter,0.9)
@@ -250,6 +262,8 @@ for iter in range(max_iter+1):
 
     if iter % 1000 == 0 and iter!=0:
         print 'taking snapshot ...'
-        torch.save(model.state_dict(),'data/snapshots/VOC12_scenes_'+str(iter)+'.pth')
+        torch.save(model.state_dict(),'data/snapshots/gta2cityscape'+str(iter)+'.pth')
 end = timeit.timeit
 print end-start,'seconds'
+writer.export_scalars_to_json("./all_scalars.json")
+writer.close()

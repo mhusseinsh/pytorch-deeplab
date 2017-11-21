@@ -7,7 +7,8 @@ data/gt/**
 data/img/**
 data/*.pth
 data/snapshots/**
-
+!runs
+runs/**
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
