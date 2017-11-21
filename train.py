@@ -42,14 +42,17 @@ print(args)
 cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
 
-def outS(i):
+def outS(k):
     """Given shape of input image as i,i,3 in deeplab-resnet model, this function
     returns j such that the shape of output blob of is j,j,21 (21 in case of VOC)"""
-    j = int(i)
-    j = (j+1)/2
-    j = int(np.ceil((j+1)/2.0))
-    j = (j+1)/2
-    return j
+    output_list = []
+    for i in k:
+        j = int(i)
+        j = (j+1)/2
+        j = int(np.ceil((j+1)/2.0))
+        j = (j+1)/2
+        output_list.append(j)
+    return output_list
 
 def read_file(path_to_file):
     with open(path_to_file) as f:
@@ -62,8 +65,8 @@ def chunker(seq, size):
     return (seq[pos:pos+size] for pos in xrange(0,len(seq), size))
 
 def resize_label_batch(label, size):
-    label_resized = np.zeros((size,size,1,label.shape[3]))
-    interp = nn.UpsamplingBilinear2d(size=(size, size))
+    label_resized = np.zeros((size[0],size[1],1,label.shape[3]))
+    interp = nn.UpsamplingBilinear2d(size=(size[0], size[1]))
     labelVar = Variable(torch.from_numpy(label.transpose(3, 2, 0, 1)))
     label_resized[:, :, :, :] = interp(labelVar).data.numpy().transpose(2, 3, 1, 0)
 
@@ -76,26 +79,29 @@ def flip(I,flip_p):
         return I
 
 def scale_im(img_temp,scale):
-    new_dims = (  int(img_temp.shape[0]*scale),  int(img_temp.shape[1]*scale)   )
+    new_dims = (  int(img_temp.shape[1]*scale),  int(img_temp.shape[0]*scale)   )
     return cv2.resize(img_temp,new_dims).astype(float)
 
 def scale_gt(img_temp,scale):
-    new_dims = (  int(img_temp.shape[0]*scale),  int(img_temp.shape[1]*scale)   )
+    new_dims = (  int(img_temp.shape[1]*scale),  int(img_temp.shape[0]*scale)   )
     return cv2.resize(img_temp,new_dims,interpolation = cv2.INTER_NEAREST).astype(float)
 
 def get_data_from_chunk_v2(chunk):
     gt_path =  args['--GTpath']
     img_path = args['--IMpath']
 
-    scale = random.uniform(0.5, 1.3) #random.uniform(0.5,1.5) does not fit in a Titan X with the present version of pytorch, so we random scaling in the range (0.5,1.3), different than caffe implementation in that caffe used only 4 fixed scales. Refer to read me
-    dim = int(scale*321)
-    images = np.zeros((dim,dim,3,len(chunk)))
-    gt = np.zeros((dim,dim,1,len(chunk)))
+    scale = random.uniform(0.3, 0.5) #random.uniform(0.5,1.5) does not fit in a Titan X with the present version of pytorch, so we random scaling in the range (0.5,1.3), different than caffe implementation in that caffe used only 4 fixed scales. Refer to read me
+    dim = [int(scale*540), int(scale*960)]
+    images = np.zeros((dim[0],dim[1],3,len(chunk)))
+    gt = np.zeros((dim[0],dim[1],1,len(chunk)))
+    #images = np.zeros((180,320,3,len(chunk)))
+    #gt = np.zeros((180,320,1,len(chunk)))
+    
     for i,piece in enumerate(chunk):
         flip_p = random.uniform(0, 1)
-        #img_temp = cv2.imread(os.path.join(img_path,piece+'.jpg')).astype(float)
         img_temp = cv2.imread(os.path.join(img_path,piece+'.png')).astype(float)
-        img_temp = cv2.resize(img_temp,(321,321)).astype(float)
+        #img_temp = cv2.resize(img_temp,(321,321)).astype(float)
+        img_temp = cv2.resize(img_temp,(960,540)).astype(float)
         img_temp = scale_im(img_temp,scale)
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008
         img_temp[:,:,1] = img_temp[:,:,1] - 116.669
@@ -103,15 +109,17 @@ def get_data_from_chunk_v2(chunk):
         img_temp = flip(img_temp,flip_p)
         images[:,:,:,i] = img_temp
 
-        #gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
         gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))
         gt_temp[gt_temp == 255] = 0
-        gt_temp = cv2.resize(gt_temp,(321,321) , interpolation = cv2.INTER_NEAREST)
+        #gt_temp = cv2.resize(gt_temp,(321,321),interpolation=cv2.INTER_NEAREST)
+        gt_temp = cv2.resize(gt_temp,(960,540),interpolation=cv2.INTER_NEAREST)
         gt_temp = scale_gt(gt_temp,scale)
         gt_temp = flip(gt_temp,flip_p)
         gt[:,:,0,i] = gt_temp
-        a = outS(321*scale)#41
-        b = outS((321*0.5)*scale+1)#21
+        #a = outS(321*scale)#41
+        #b = outS((321*0.5)*scale+1)#21
+        a = outS(dim)#41
+        b = outS([dim[0]*0.5+1, dim[1]*0.5+1])#21
     # output is not as the same as the original image
     labels = [resize_label_batch(gt,i) for i in [a,a,b,a]]
     images = images.transpose((3,2,0,1))
