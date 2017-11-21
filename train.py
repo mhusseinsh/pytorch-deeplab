@@ -105,6 +105,7 @@ def get_data_from_chunk_v2(chunk):
         images[:,:,:,i] = img_temp
         
         #gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
+        print piece
         gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))
         gt_temp[gt_temp == 255] = 0
         gt_temp = cv2.resize(gt_temp,(321,321) , interpolation = cv2.INTER_NEAREST)
