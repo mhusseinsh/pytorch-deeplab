@@ -9,7 +9,7 @@ import torch
 from torch.autograd import Variable
 import torchvision.models as models
 import torch.nn.functional as F
-import deeplab_resnet 
+import deeplab_resnet
 from collections import OrderedDict
 import os
 from os import walk
@@ -21,7 +21,7 @@ from docopt import docopt
 
 docstr = """Evaluate ResNet-DeepLab trained on scenes (VOC 2012),a total of 21 labels including background
 
-Usage: 
+Usage:
     evalpyt.py [options]
 
 Options:
@@ -37,7 +37,7 @@ Options:
 args = docopt(docstr, version='v0.1')
 print args
 
-max_label = int(args['--NoLabels'])-1 # labels from 0,1, ... 20(for VOC) 
+max_label = int(args['--NoLabels'])-1 # labels from 0,1, ... 20(for VOC)
 def fast_hist(a, b, n):
     k = (a >= 0) & (a < n)
     return np.bincount(n * a[k].astype(int) + b[k], minlength=n**2).reshape(n, n)
@@ -45,7 +45,7 @@ def fast_hist(a, b, n):
 def get_iou(pred,gt):
     if pred.shape!= gt.shape:
         print 'pred shape',pred.shape, 'gt shape', gt.shape
-    assert(pred.shape == gt.shape)    
+    assert(pred.shape == gt.shape)
     gt = gt.astype(np.float32)
     pred = pred.astype(np.float32)
 
@@ -55,17 +55,17 @@ def get_iou(pred,gt):
         p_idx_j = set(zip(x[0].tolist(),x[1].tolist()))
         x = np.where(gt==j)
         GT_idx_j = set(zip(x[0].tolist(),x[1].tolist()))
-        #pdb.set_trace()     
+        #pdb.set_trace()
         n_jj = set.intersection(p_idx_j,GT_idx_j)
         u_jj = set.union(p_idx_j,GT_idx_j)
-    
-        
+
+
         if len(GT_idx_j)!=0:
             count[j] = float(len(n_jj))/float(len(u_jj))
 
     result_class = count
-    Aiou = np.sum(result_class[:])/float(len(np.unique(gt))) 
-    
+    Aiou = np.sum(result_class[:])/float(len(np.unique(gt)))
+
     return Aiou
 
 
@@ -76,23 +76,28 @@ model = deeplab_resnet.Res_Deeplab(int(args['--NoLabels']))
 model.eval()
 counter = 0
 model.cuda(gpu0)
-snapPrefix = args['--snapPrefix'] 
+snapPrefix = args['--snapPrefix']
 gt_path = args['--testGTpath']
 img_list = open('data/list/val.txt').readlines()
+
+resize_height = 360
+resize_width = 640
 
 for iter in range(1,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
     saved_state_dict = torch.load(os.path.join('data/snapshots/',snapPrefix+str(iter)+'000.pth'))
     if counter==0:
-	print snapPrefix
+        print snapPrefix
     counter+=1
     model.load_state_dict(saved_state_dict)
 
     hist = np.zeros((max_label+1, max_label+1))
     pytorch_list = [];
     for i in img_list:
-        img = np.zeros((513,513,3));
+        img = np.zeros((resize_height,resize_width,3));
         img_original = cv2.imread(os.path.join(im_path,i[:-1]+'.png'))
-        img_temp = cv2.resize(img_original,(513,513))
+        new_weidth = int((img_original.shape[1]-(img_original.shape[0]*16//9))//2)
+        img_original = img_original[:,new_weidth:-new_weidth]
+        img_temp = cv2.resize(img_original,(resize_width,resize_height))
         img_temp.astype(float)
 
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008  # B
@@ -100,14 +105,14 @@ for iter in range(1,21):   #TODO set the (different iteration)models that you wa
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675  # R
         img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
         #gt = cv2.imread(os.path.join(gt_path,i[:-1]+'.png'),0)
-        gt = np.array(Image.open(os.path.join(gt_path,i[:-1]+'.png')))
+        gt = np.array(Image.open(os.path.join(gt_path,i[:-1]+'.png')))[:,new_weidth:-new_weidth]
         #gt[gt==255] = 0
-        gt = cv2.resize(gt, (513,513), interpolation = cv2.INTER_NEAREST)
+        gt = cv2.resize(gt, (resize_width, resize_height), interpolation = cv2.INTER_NEAREST)
         output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
-        interp = nn.UpsamplingBilinear2d(size=(513, 513))
+        interp = nn.UpsamplingBilinear2d(size=(resize_height, resize_width))
         output = interp(output[3]).cpu().data[0].numpy()
         output = output[:,:img_temp.shape[0],:img_temp.shape[1]]
-        
+
         output = output.transpose(1,2,0)
         output = np.argmax(output,axis = 2)
         if args['--visualize']:
@@ -119,7 +124,7 @@ for iter in range(1,21):   #TODO set the (different iteration)models that you wa
             plt.imshow(output, vmin = 0, vmax = 34)
             plt.show()
 
-        iou_pytorch = get_iou(output,gt)       
+        iou_pytorch = get_iou(output,gt)
         pytorch_list.append(iou_pytorch)
         hist += fast_hist(gt.flatten(),output.flatten(),max_label+1)
     miou = np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist))
