@@ -90,16 +90,17 @@ for iter in range(1,21):   #TODO set the (different iteration)models that you wa
     pytorch_list = [];
     for i in img_list:
         img = np.zeros((513,513,3));
+        img_original = cv2.imread(os.path.join(im_path,i[:-1]+'.png'))
+        img_temp = cv2.resize(img_original,(513,513))
+        img_temp.astype(float)
 
-        img_temp = cv2.imread(os.path.join(im_path,i[:-1]+'.jpg')).astype(float)
-        img_original = img_temp
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008
         img_temp[:,:,1] = img_temp[:,:,1] - 116.669
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675
         img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
         gt = cv2.imread(os.path.join(gt_path,i[:-1]+'.png'),0)
         #gt[gt==255] = 0
-
+        gt = cv2.resize(gt, (513,513), interpolation = cv2.INTER_NEAREST)
         output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
         interp = nn.UpsamplingBilinear2d(size=(513, 513))
         output = interp(output[3]).cpu().data[0].numpy()
@@ -109,7 +110,7 @@ for iter in range(1,21):   #TODO set the (different iteration)models that you wa
         output = np.argmax(output,axis = 2)
         if args['--visualize']:
             plt.subplot(3, 1, 1)
-            plt.imshow(img_original)
+            plt.imshow(img_original[:,:,::-1])
             plt.subplot(3, 1, 2)
             plt.imshow(gt)
             plt.subplot(3, 1, 3)

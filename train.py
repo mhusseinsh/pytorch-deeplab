@@ -113,6 +113,7 @@ def get_data_from_chunk_v2(chunk):
         gt[:,:,0,i] = gt_temp
         a = outS(321*scale)#41
         b = outS((321*0.5)*scale+1)#21
+    # output is not as the same as the original image
     labels = [resize_label_batch(gt,i) for i in [a,a,b,a]]
     images = images.transpose((3,2,0,1))
     images = torch.from_numpy(images).float()
@@ -231,7 +232,7 @@ for iter in range(max_iter+1):
     loss.backward()
 
     if iter %1 == 0:
-        print 'iter = ', iter, 'of', max_iter, 'completed, loss = ', iter_size*(loss.data.cpu().numpy())
+        print 'iter = ',iter, 'of',max_iter,'completed, loss = ', iter_size*(loss.data.cpu().numpy())
 
     if iter % iter_size  == 0:
         optimizer.step()
