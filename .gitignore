@@ -6,6 +6,7 @@
 data/gt/**
 data/img/**
 data/*.pth
+data/snapshots/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
