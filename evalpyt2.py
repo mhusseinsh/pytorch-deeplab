@@ -15,6 +15,7 @@ import os
 from os import walk
 import matplotlib.pyplot as plt
 import torch.nn as nn
+from PIL import Image
 
 from docopt import docopt
 
@@ -94,11 +95,12 @@ for iter in range(1,21):   #TODO set the (different iteration)models that you wa
         img_temp = cv2.resize(img_original,(513,513))
         img_temp.astype(float)
 
-        img_temp[:,:,0] = img_temp[:,:,0] - 104.008
-        img_temp[:,:,1] = img_temp[:,:,1] - 116.669
-        img_temp[:,:,2] = img_temp[:,:,2] - 122.675
+        img_temp[:,:,0] = img_temp[:,:,0] - 104.008  # B
+        img_temp[:,:,1] = img_temp[:,:,1] - 116.669  # G
+        img_temp[:,:,2] = img_temp[:,:,2] - 122.675  # R
         img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
-        gt = cv2.imread(os.path.join(gt_path,i[:-1]+'.png'),0)
+        #gt = cv2.imread(os.path.join(gt_path,i[:-1]+'.png'),0)
+        gt = np.array(Image.open(os.path.join(gt_path,i[:-1]+'.png')))
         #gt[gt==255] = 0
         gt = cv2.resize(gt, (513,513), interpolation = cv2.INTER_NEAREST)
         output = model(Variable(torch.from_numpy(img[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0))
@@ -112,9 +114,9 @@ for iter in range(1,21):   #TODO set the (different iteration)models that you wa
             plt.subplot(3, 1, 1)
             plt.imshow(img_original[:,:,::-1])
             plt.subplot(3, 1, 2)
-            plt.imshow(gt)
+            plt.imshow(gt, vmin = 0, vmax = 34)
             plt.subplot(3, 1, 3)
-            plt.imshow(output)
+            plt.imshow(output, vmin = 0, vmax = 34)
             plt.show()
 
         iou_pytorch = get_iou(output,gt)       
