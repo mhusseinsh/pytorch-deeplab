@@ -3,6 +3,9 @@
 +data/img/
 +data/snapshots/
 +data/*.caffemodel
+!data
+data/gt
+data/img
 data/gt/**
 data/img/**
 data/*.pth

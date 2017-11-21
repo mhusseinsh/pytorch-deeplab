@@ -90,7 +90,7 @@ def scale_gt(img_temp,scale):
     new_dims = (int(img_temp.shape[1]*scale),int(img_temp.shape[0]*scale))
     return cv2.resize(img_temp,new_dims,interpolation = cv2.INTER_NEAREST).astype(float)
 
-def get_data_from_chunk_v2(chunk):
+def get_data_from_chunk_v2(chunk, iter):
     gt_path =  args['--GTpath']
     img_path = args['--IMpath']
     resize_height = 540
@@ -111,20 +111,15 @@ def get_data_from_chunk_v2(chunk):
         #img_temp = cv2.resize(img_temp,(321,321)).astype(float)
         img_temp = cv2.resize(img_temp,(resize_width,resize_height)).astype(float)
         img_temp = scale_im(img_temp,scale)
+        if iter%20==0:
+            writer.add_image('input', torch.from_numpy(img_temp.transpose(2,0,1)).type(torch.LongTensor), iter)
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008
         img_temp[:,:,1] = img_temp[:,:,1] - 116.669
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675
         img_temp = flip(img_temp,flip_p)
         images[:,:,:,i] = img_temp
-<<<<<<< HEAD
-        
-        #gt_temp = cv2.imread(os.path.join(gt_path,piece+'.png'))[:,:,0]
-        print piece
-        gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))
-=======
 
         gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))[:, new_weidth:-new_weidth]
->>>>>>> a949c2714aba0f5d09ba3a8553ffce754d1c4f72
         gt_temp[gt_temp == 255] = 0
         #gt_temp = cv2.resize(gt_temp,(321,321),interpolation=cv2.INTER_NEAREST)
         gt_temp = cv2.resize(gt_temp,(resize_width,resize_height),interpolation=cv2.INTER_NEAREST)
@@ -243,7 +238,7 @@ data_gen = chunker(data_list, batch_size)
 for iter in range(max_iter+1):
     chunk = data_gen.next()
 
-    images, label = get_data_from_chunk_v2(chunk)
+    images, label = get_data_from_chunk_v2(chunk, iter)
     images = Variable(images).cuda(gpu0)
 
     out = model(images)
@@ -255,7 +250,7 @@ for iter in range(max_iter+1):
     loss.backward()
     if iter%20 == 0:
         print images.size()
-        writer.add_image('RAW', torch.cat((images[0,2:,:,:],images[0,1:2,:,:],images[0,0:1,:,:]),dim=0).type(torch.LongTensor), iter)
+        writer.add_image('RAW', torch.cat((images[0,0:1,:,:]+104.008,images[0,1:2,:,:]+116.669, images[0,2:,:,:]+122.675),dim=0).type(torch.LongTensor), iter)
 
     if iter %1 == 0:
         print 'iter = ',iter, 'of',max_iter,'completed, loss = ', iter_size*(loss.data.cpu().numpy())
