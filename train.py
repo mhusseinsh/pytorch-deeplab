@@ -223,7 +223,7 @@ for iter in range(max_iter+1):
     images = Variable(images).cuda(gpu0)
 
     out = model(images)
-    loss = loss_calc(out[0], label[0],gpu0)
+    loss = loss_calc(out[0], label[0], gpu0)
     iter_size = int(args['--iterSize'])
     for i in range(len(out)-1):
         loss = loss + loss_calc(out[i+1],label[i+1],gpu0)
@@ -231,7 +231,7 @@ for iter in range(max_iter+1):
     loss.backward()
 
     if iter %1 == 0:
-        print 'iter = ',iter, 'of',max_iter,'completed, loss = ', iter_size*(loss.data.cpu().numpy())
+        print 'iter = ', iter, 'of', max_iter, 'completed, loss = ', iter_size*(loss.data.cpu().numpy())
 
     if iter % iter_size  == 0:
         optimizer.step()
