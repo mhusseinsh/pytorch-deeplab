@@ -5,7 +5,6 @@ import torch
 import numpy as np
 affine_par = True
 
-
 def outS(i):
     i = int(i)
     i = (i+1)/2
@@ -77,8 +76,6 @@ class Bottleneck(nn.Module):
         self.downsample = downsample
         self.stride = stride
 
-
-
     def forward(self, x):
         residual = x
 
@@ -101,6 +98,7 @@ class Bottleneck(nn.Module):
 
         return out
 
+
 class Classifier_Module(nn.Module):
 
     def __init__(self,dilation_series,padding_series,NoLabels):
@@ -112,13 +110,11 @@ class Classifier_Module(nn.Module):
         for m in self.conv2d_list:
             m.weight.data.normal_(0, 0.01)
 
-
     def forward(self, x):
         out = self.conv2d_list[0](x)
         for i in range(len(self.conv2d_list)-1):
             out += self.conv2d_list[i+1](x)
         return out
-
 
 
 class ResNet(nn.Module):
@@ -165,6 +161,7 @@ class ResNet(nn.Module):
             layers.append(block(self.inplanes, planes,dilation_=dilation__))
 
         return nn.Sequential(*layers)
+
     def _make_pred_layer(self,block, dilation_series, padding_series,NoLabels):
         return block(dilation_series,padding_series,NoLabels)
 
@@ -188,9 +185,12 @@ class MS_Deeplab(nn.Module):
 
     def forward(self,x):
         input_size = x.size()[2]
-        self.interp1 = nn.UpsamplingBilinear2d(size = (  int(input_size*0.75)+1,  int(input_size*0.75)+1  ))
-        self.interp2 = nn.UpsamplingBilinear2d(size = (  int(input_size*0.5)+1,   int(input_size*0.5)+1   ))
-        self.interp3 = nn.UpsamplingBilinear2d(size = (  outS(input_size),   outS(input_size)   ))
+        self.interp1=nn.UpsamplingBilinear2d(
+                size=(int(input_size*0.75)+1,int(input_size*0.75)+1))
+        self.interp2=nn.UpsamplingBilinear2d(
+                size=(int(input_size*0.5)+1,int(input_size*0.5)+1))
+        self.interp3=nn.UpsamplingBilinear2d(
+                size=(outS(input_size),outS(input_size)))
         out = []
         x2 = self.interp1(x)
         x3 = self.interp2(x)

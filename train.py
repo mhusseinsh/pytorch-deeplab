@@ -42,7 +42,6 @@ print(args)
 cudnn.enabled = False
 gpu0 = int(args['--gpu0'])
 
-
 def outS(i):
     """Given shape of input image as i,i,3 in deeplab-resnet model, this function
     returns j such that the shape of output blob of is j,j,21 (21 in case of VOC)"""
@@ -119,8 +118,6 @@ def get_data_from_chunk_v2(chunk):
     images = torch.from_numpy(images).float()
     return images, labels
 
-
-
 def loss_calc(out, label, gpu0):
     """
     This function returns cross entropy loss for semantic segmentation
@@ -136,10 +133,8 @@ def loss_calc(out, label, gpu0):
 
     return criterion(out,label)
 
-
 def lr_poly(base_lr, iter,max_iter,power):
     return base_lr*((1-float(iter)/max_iter)**(power))
-
 
 def get_1x_lr_params_NOscale(model):
     """
