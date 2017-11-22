@@ -27,10 +27,10 @@ Usage:
 Options:
     -h, --help                  Print this message
     --visualize                 view outputs of each sketch
-    --snapPrefix=<str>          Snapshot [default: VOC12_scenes_]
-    --testGTpath=<str>          Ground truth path prefix [default: data/gt/]
-    --testIMpath=<str>          Sketch images path prefix [default: data/img/]
-    --NoLabels=<int>            The number of different labels in training data, VOC has 21 labels, including background [default: 21]
+    --snapShot=<str>            Snapshot [default: gta2cityscape184000.pth]
+    --testGTpath=<str>          Ground truth path Shot [default: data/gt/]
+    --testIMpath=<str>          Sketch images path Shot [default: data/img/]
+    --NoLabels=<int>            The number of different labels in training data, VOC has 21 labels, including background [default: 35]
     --gpu0=<int>                GPU number [default: 0]
 """
 
@@ -68,28 +68,27 @@ def get_iou(pred,gt):
 
     return Aiou
 
-
-
 gpu0 = int(args['--gpu0'])
 im_path = args['--testIMpath']
 model = deeplab_resnet.Res_Deeplab(int(args['--NoLabels']))
 model.eval()
 counter = 0
 model.cuda(gpu0)
-snapPrefix = args['--snapPrefix']
+snapShot = args['--snapShot']
 gt_path = args['--testGTpath']
+#img_list = open('data/list/train_aug.txt').readlines()
 img_list = open('data/list/val.txt').readlines()
 
-resize_height = 180
-resize_width = 320
-#resize_height = 512
-#resize_width = 512
+#resize_height = 180
+#resize_width = 320
+resize_height = 360
+resize_width = 640
 
 #for iter in range(1,21):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
 for iter in range(1):   #TODO set the (different iteration)models that you want to evaluate on. Models are saved during training after each 1000 iters by default.
-    saved_state_dict = torch.load(os.path.join('./data/snapshots/VOC12_scenes_200000.pth'))
+    saved_state_dict = torch.load(os.path.join('./data/snapshots/', snapShot))
     if counter==0:
-        print snapPrefix
+        print snapShot
     counter+=1
     model.load_state_dict(saved_state_dict)
 
@@ -99,9 +98,10 @@ for iter in range(1):   #TODO set the (different iteration)models that you want 
         img = np.zeros((resize_height,resize_width,3));
         img_original = cv2.imread(os.path.join(im_path,i[:-1]+'.png'))
         new_weidth = int((img_original.shape[1]-(img_original.shape[0]*16//9))//2)
-        if new_weidth != 0
+        if new_weidth != 0:
             img_original = img_original[:,new_weidth:-new_weidth]
-        img_temp = cv2.resize(img_original,(resize_width,resize_height))
+        img_original = cv2.resize(img_original,(resize_width,resize_height))
+        img_temp=img_original.copy()
         img_temp.astype(float)
 
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008  # B
@@ -130,6 +130,8 @@ for iter in range(1):   #TODO set the (different iteration)models that you want 
 
         iou_pytorch = get_iou(output,gt)
         pytorch_list.append(iou_pytorch)
-        hist += fast_hist(gt.flatten(),output.flatten(),max_label+1)
+        hist_ = fast_hist(gt.flatten(),output.flatten(),max_label+1)
+        hist += hist_
+        print iou_pytorch, hist
     miou = np.diag(hist) / (hist.sum(1) + hist.sum(0) - np.diag(hist))
-    print 'pytorch',iter,"Mean iou = ",np.sum(miou)/len(miou)
+    print 'pytorch',iter,"Mean iou = ",np.sum(miou)/len(pytorch_list)
