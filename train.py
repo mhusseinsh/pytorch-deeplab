@@ -27,16 +27,17 @@ Usage:
     train.py [options]
 
 Options:
-    -h, --help                  Print this message
-    --GTpath=<str>              Ground truth path prefix [default: data/gt/]
-    --IMpath=<str>              Sketch images path prefix [default: data/img/]
-    --NoLabels=<int>            The number of different labels in training data, VOC has 21 labels, including background [default: 21]
-    --LISTpath=<str>            Input image number list file [default: data/list/train_aug.txt]
-    --lr=<float>                Learning Rate [default: 0.00025]
-    -i, --iterSize=<int>        Num iters to accumulate gradients over [default: 10]
-    --wtDecay=<float>          Weight decay during training [default: 0.0005]
-    --gpu0=<int>                GPU number [default: 0]
-    --maxIter=<int>             Maximum number of iterations [default: 20000]
+    -h, --help                   Print this message
+    --GTpath=<str>               Ground truth path prefix [default: data/gt/]
+    --IMpath=<str>               Sketch images path prefix [default: data/img/]
+    --NoLabels=<int>             The number of different labels in training data, VOC has 21 labels, including background [default: 35]
+    --LISTpath=<str>             Input image number list file [default: data/list/train_aug.txt]
+    --lr=<float>                 Learning Rate [default: 0.00025]
+    -i, --iterSize=<int>         Num iters to accumulate gradients over [default: 8]
+    --wtDecay=<float>            Weight decay during training [default: 0.0005]
+    --gpu0=<int>                 GPU number [default: 0]
+    --maxIter=<int>              Maximum number of iterations [default: 100000]
+    --saveSnap=<str>             Maximum number of iterations [default: g2c1122]
 """
 
 #    -b, --batchSize=<int>       num sample per batch [default: 1] currently only batch size of 1 is implemented, arbitrary batch size to be implemented soon
@@ -93,24 +94,31 @@ def scale_gt(img_temp,scale):
 def get_data_from_chunk_v2(chunk, iter):
     gt_path =  args['--GTpath']
     img_path = args['--IMpath']
-    resize_height = 540
-    resize_width = 960
 
-    scale = random.uniform(0.2, 0.5) #random.uniform(0.5,1.5) does not fit in a Titan X with the present version of pytorch, so we random scaling in the range (0.5,1.3), different than caffe implementation in that caffe used only 4 fixed scales. Refer to read me
+    resize_height = 513
+    resize_width = 513
+    
+    scale = random.uniform(0.8, 1.2) #random.uniform(0.5,1.5) does not fit in a Titan X with the present version of pytorch, so we random scaling in the range (0.5,1.3), different than caffe implementation in that caffe used only 4 fixed scales. Refer to read me
+    
+
     dim = [int(scale*resize_height), int(scale*resize_width)]
     images = np.zeros((dim[0],dim[1],3,len(chunk)))
     gt = np.zeros((dim[0],dim[1],1,len(chunk)))
-    #images = np.zeros((180,320,3,len(chunk)))
-    #gt = np.zeros((180,320,1,len(chunk)))
 
     for i,piece in enumerate(chunk):
         flip_p = random.uniform(0, 1)
         img_original = cv2.imread(os.path.join(img_path,piece+'.png')).astype(float)
-        new_weidth = int((img_original.shape[1]-(img_original.shape[0]*16//9))//2)
-        img_temp = img_original[:,new_weidth:-new_weidth]
-        #img_temp = cv2.resize(img_temp,(321,321)).astype(float)
-        img_temp = cv2.resize(img_temp,(resize_width,resize_height)).astype(float)
+        scale_crop_height = random.randint(0, img_original.shape[0]-resize_height)
+        scale_crop_width = random.randint(0, img_original.shape[1]-resize_width)
+        
+        #new_weidth = int((img_original.shape[1]-(img_original.shape[0]*16//9))//2)
+        #img_temp = img_original[:, new_weidth:-new_weidth]
+        #img_temp = cv2.resize(img_temp,(resize_width,resize_height)).astype(float)
+        
+        img_original  = img_original[scale_crop_height:scale_crop_height+resize_height, scale_crop_width:scale_crop_width+resize_width]
+        img_temp = img_original[:,:,:].astype(float)
         img_temp = scale_im(img_temp,scale)
+
         if iter%20==0:
             writer.add_image('input', torch.from_numpy(img_temp.transpose(2,0,1)).type(torch.LongTensor), iter)
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008
@@ -120,9 +128,9 @@ def get_data_from_chunk_v2(chunk, iter):
         images[:,:,:,i] = img_temp
 
         gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))[:, new_weidth:-new_weidth]
-        gt_temp[gt_temp == 255] = 0
-        #gt_temp = cv2.resize(gt_temp,(321,321),interpolation=cv2.INTER_NEAREST)
-        gt_temp = cv2.resize(gt_temp,(resize_width,resize_height),interpolation=cv2.INTER_NEAREST)
+        #gt_temp[gt_temp == 255] = 0
+        #gt_temp = cv2.resize(gt_temp,(resize_width,resize_height),interpolation=cv2.INTER_NEAREST)
+        gt_temp = gt_temp[scale_crop_height:scale_crop_height+resize_height, scale_crop_width:scale_crop_width+resize_width]
         gt_temp = scale_gt(gt_temp,scale)
         gt_temp = flip(gt_temp,flip_p)
         gt[:,:,0,i] = gt_temp
@@ -157,8 +165,10 @@ def loss_calc(out, label, gpu0, iter, count):
     #return criterion(out,label)
     return F.nll_loss(F.log_softmax(out),label)
 
-def lr_poly(base_lr, iter,max_iter,power):
-    return base_lr*((1-float(iter)/max_iter)**(power))
+def lr_poly(base_lr, base_wd, iter,max_iter,power):
+    
+    multi=((1-float(iter)/max_iter)**(power))
+    return base_lr * multi, base_wd * multi
 
 def get_1x_lr_params_NOscale(model):
     """
@@ -215,7 +225,7 @@ model.load_state_dict(saved_state_dict)
 
 max_iter = int(args['--maxIter'])
 batch_size = 1
-weight_decay = float(args['--wtDecay'])
+base_weight_decay = float(args['--wtDecay'])
 base_lr = float(args['--lr'])
 
 model.float()
@@ -230,7 +240,7 @@ for i in range(10):  # make list for 10 epocs, though we will only use the first
 
 model.cuda(gpu0)
 criterion = nn.CrossEntropyLoss() # use a Classification Cross-Entropy loss
-optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': base_lr }, {'params': get_10x_lr_params(model), 'lr': 10*base_lr} ], lr = base_lr, momentum = 0.9,weight_decay = weight_decay)
+optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': base_lr }, {'params': get_10x_lr_params(model), 'lr': 10*base_lr} ], lr = base_lr, momentum = 0.9,weight_decay = base_weight_decay)
 
 optimizer.zero_grad()
 data_gen = chunker(data_list, batch_size)
@@ -257,14 +267,15 @@ for iter in range(max_iter+1):
         writer.add_scalar('loss', iter_size*loss.data[0], iter)
     if iter % iter_size  == 0:
         optimizer.step()
-        lr_ = lr_poly(base_lr,iter,max_iter,0.9)
+        lr_, weight_decay_ = lr_poly(base_lr, base_weight_decay, iter,max_iter,0.9)
         print '(poly lr policy) learning rate',lr_
-        optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': lr_ }, {'params': get_10x_lr_params(model), 'lr': 10*lr_} ], lr = lr_, momentum = 0.9,weight_decay = weight_decay)
+        #optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': lr_ }, {'params': get_10x_lr_params(model), 'lr': 10*lr_} ], lr = lr_, momentum = 0.9,weight_decay = weight_decay_)
+        optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': lr_ }, {'params': get_10x_lr_params(model), 'lr': 10*lr_} ], lr = lr_, momentum = 0.9,weight_decay = base_weight_decay)
         optimizer.zero_grad()
 
     if iter % 1000 == 0 and iter!=0:
         print 'taking snapshot ...'
-        torch.save(model.state_dict(),'data/snapshots/gta2cityscape'+str(iter)+'.pth')
+        torch.save(model.state_dict(),'data/snapshots/'+args['--saveSnap']+'_'+str(iter)+'.pth')
 end = timeit.timeit
 print end-start,'seconds'
 writer.export_scalars_to_json("./all_scalars.json")
