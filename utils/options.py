@@ -19,15 +19,12 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "aisdaim"    # "machine_id"
-        self.timestamp   = "17112100"   # "yymmdd## "
+        self.machine     = "hpcgpu7"    # "machine_id"
+        self.timestamp   = "17112300"   # "yymmdd## "
         # training configuration
         self.mode        = 1            # 1(train) | 2(test model_file)
         self.config      = 0
         self.save_imgs   = True         # TODO: only effect test_model when mode==2
-        self.flo_metric  = True         # TODO: only effect test_model when mode==2
-
-        self.save_freq   = 5
         self.segmentation_labels = 35
 
         self.seed        = 1
