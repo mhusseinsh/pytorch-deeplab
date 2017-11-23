@@ -68,7 +68,7 @@ def read_file(path_to_file):
             img_list.append(line[:-1])
     return img_list
 
-def chunker(seq, size):
+def chunker(seq, size=1):
     return (seq[pos:pos+size] for pos in xrange(0,len(seq), size))
 
 def scale_im(img, scale, interpolation=cv2.INTER_LINEAR):
