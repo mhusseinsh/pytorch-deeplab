@@ -149,7 +149,8 @@ class DeeplabAgent(Agent):
             
             img = img[crop_height:crop_height+self.resize_height, 
                     crop_width:crop_width+self.resize_width]
-            img = scale_im(img, scale).astype(np.float32)
+            #img = scale_im(img, scale).astype(np.float32)
+            img = scale_im(img, scale).astype(float)
             if self.mode==1 or self.with_gt:
                 gt = gt[crop_height:crop_height+self.resize_height,
                         crop_width:crop_width+self.resize_width]
@@ -158,7 +159,6 @@ class DeeplabAgent(Agent):
             img[:,:,0] = img[:,:,0] - 104.008
             img[:,:,1] = img[:,:,1] - 116.669
             img[:,:,2] = img[:,:,2] - 122.675
-            print (img)
             if self.flip_flag: 
                 img = flip(img, flip_p)
                 gt = flip(gt, flip_p)

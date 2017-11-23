@@ -20,7 +20,7 @@ class Params(object):   # NOTE: shared across all modules
 
         # training signature
         self.machine     = "hpcgpu7"    # "machine_id"
-        self.timestamp   = "17112300"   # "yymmdd## "
+        self.timestamp   = "17112301"   # "yymmdd## "
         # training configuration
         self.mode        = 2            # 1(train) | 2(test model_file)
         self.config      = 0
