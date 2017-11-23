@@ -212,6 +212,9 @@ class DeeplabAgent(Agent):
                 self.writer.add_image(self.refs+'/GT', gts_vb_list[3][0]*7, self.step)
                 out_img = torch.max(out_vb_list[3], 1)[1]
                 self.writer.add_image(self.refs+'/OUT',out_img[0]*7, self.step)
+            if self.step % 2000==0:
+                self._save_model(self.step)
+
 
         self.writer.export_scalars_to_json(os.path.join(self.root_dir, "logs/"+self.refs+'.json'))
         self.writer.close()
