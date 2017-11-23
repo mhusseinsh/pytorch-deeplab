@@ -80,17 +80,24 @@ class AgentParams(Params):  # settings for network architecture
             self.epochs         = 100
             self.test_steps     = 50
             
-            self.iter_size      = 8
-            self.train_list = "train_aug.txt"
-            self.train_list_path    = self.root_dir+"/data/list/"+self.train_list
-            self.train_img_path     = self.root_dir+"/data/img/"
-            self.train_gt_path      = self.root_dir+"/data/gt/"
-            self.img_extend_name    = '.png'
-            self.gt_extend_name     = '.png'
             self.flip_flag          = True
             self.resize_width       = 513
             self.resize_height      = 513
             self.scale_range        = [0.6, 0.8]
+            self.iter_size      = 8
+
+            self.data_list_file = "train_aug.txt"
+            if self.mode==2:
+                self.batch_size = 1
+                self.epochs = 1
+                self.data_list_file  = "val.txt"
+                self.with_gt = True
+                self.flip_flag = False
+            self.list_path    = self.root_dir+"/data/list/"+self.data_list_file
+            self.img_path     = self.root_dir+"/data/img/"
+            self.gt_path      = self.root_dir+"/data/gt/"
+            self.img_extend_name    = '.png'
+            self.gt_extend_name     = '.png'
 
             self.lr_decay_start = 50#100     # # of iter at starting learning rate
             self.beta1          = 0.5
