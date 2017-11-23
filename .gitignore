@@ -11,7 +11,10 @@ data/gt/**
 data/img/**
 data/*.pth
 data/snapshots/**
+deprecated/**
+!logs
 !models
+logs/*
 models/*
 !runs
 runs/**
