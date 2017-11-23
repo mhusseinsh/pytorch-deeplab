@@ -98,12 +98,12 @@ model.cuda(gpu0)
 snapShot = args['--snapShot']
 gt_path = args['--testGTpath']
 #img_list = open('data/list/train_aug.txt').readlines()
-img_list = open('./data/list/val.txt').readlines()
+img_list = open('./data/list/train_aug.txt').readlines()
 
 #resize_height = 180
 #resize_width = 320
-resize_height = int(1000)
-resize_width = int(1900)
+resize_height = int(450)
+resize_width = int(800)
 dim = [int(resize_height), int(resize_width)]
 output_channel= 3
 
@@ -117,52 +117,50 @@ for iter in range(1):   #TODO set the (different iteration)models that you want 
 
     hist = np.zeros((max_label+1, max_label+1))
     pytorch_list = [];
-    gt = np.zeros((dim[0],dim[1],1,1))
+    #gt = np.zeros((dim[0],dim[1],1,1))
 
     for i in img_list:
         #img = np.zeros((resize_height,resize_width,3));
         img_original = cv2.imread(os.path.join(im_path,i[:-1]+'.png'))
         gt_temp = np.array(Image.open(os.path.join(gt_path,i[:-1]+'.png')))
-        if (gt_temp.shape[0] < img_original.shape[0]):
-            img_original = cv2.resize(img_original,(gt_temp.shape[1], gt_temp.shape[0]),interpolation=cv2.INTER_NEAREST)
-        elif (gt_temp.shape[0] > img_original.shape[0]):
-            gt_temp = cv2.resize(gt_temp,(img_original.shape[1], img_original.shape[0]),interpolation=cv2.INTER_NEAREST)
+        #if (gt_temp.shape[0] < img_original.shape[0]):
+            #img_original = cv2.resize(img_original,(gt_temp.shape[1], gt_temp.shape[0]),interpolation=cv2.INTER_NEAREST)
+        #elif (gt_temp.shape[0] > img_original.shape[0]):
+            #gt_temp = cv2.resize(gt_temp,(img_original.shape[1], img_original.shape[0]),interpolation=cv2.INTER_NEAREST)
         
-        scale_crop_height = random.randint(0, img_original.shape[0]-resize_height)
-        scale_crop_width = random.randint(0, img_original.shape[1]-resize_width)
+        #scale_crop_height = random.randint(0, img_original.shape[0]-resize_height)
+        #scale_crop_width = random.randint(0, img_original.shape[1]-resize_width)
 
-        #new_weidth = int((img_original.shape[1]-(img_original.shape[0]*16//9))//2)
-        #if new_weidth != 0:
-            #img_original = img_original[:,new_weidth:-new_weidth]
-        #img_original = cv2.resize(img_original,(resize_width,resize_height))
+        new_weidth = int((img_original.shape[1]-(img_original.shape[0]*16//9))//2)
+        if new_weidth != 0:
+            img_original = img_original[:,new_weidth:-new_weidth]
+        img_original = cv2.resize(img_original,(resize_width,resize_height))
 
-        img_original  = img_original[scale_crop_height:scale_crop_height+resize_height, scale_crop_width:scale_crop_width+resize_width]
+        #img_original  = img_original[scale_crop_height:scale_crop_height+resize_height, scale_crop_width:scale_crop_width+resize_width]
         img_temp=img_original.copy()
         img_temp=img_temp.astype(float)
 
         img_temp[:,:,0] = img_temp[:,:,0] - 104.008  # B
         img_temp[:,:,1] = img_temp[:,:,1] - 116.669  # G
         img_temp[:,:,2] = img_temp[:,:,2] - 122.675  # R
-        #img[:img_temp.shape[0],:img_temp.shape[1],:] = img_temp
-        #img[:,:,:] = img_temp
 
-        #if new_weidth != 0:
-            #gt = np.array(Image.open(os.path.join(gt_path,i[:-1]+'.png')))[:,new_weidth:-new_weidth]
-        ##gt[gt==255] = 0
-        #gt = cv2.resize(gt, (resize_width, resize_height), interpolation = cv2.INTER_NEAREST)
+        if new_weidth != 0:
+            gt_temp = gt_temp[:,new_weidth:-new_weidth]
+        #gt[gt==255] = 0
+        gt_temp = cv2.resize(gt_temp, (resize_width, resize_height), interpolation = cv2.INTER_NEAREST)
         
-        gt_temp = gt_temp[scale_crop_height:scale_crop_height+resize_height, scale_crop_width:scale_crop_width+resize_width]
-        gt[:,:,0,0] = gt_temp
-        a = outS(dim)#41
-        b = outS([dim[0]*0.5+1, dim[1]*0.5+1])#21
-        labels = [resize_label_batch(gt,i) for i in [a,a,b,a]]
-        gt_show = labels[output_channel][:,:,0,0]
+        #gt_temp = gt_temp[scale_crop_height:scale_crop_height+resize_height, scale_crop_width:scale_crop_width+resize_width]
+        #gt[:,:,0,0] = gt_temp
+        #a = outS(dim)#41
+        #b = outS([dim[0]*0.5+1, dim[1]*0.5+1])#21
+        #labels = [resize_label_batch(gt,i) for i in [a,a,b,a]]
+        #gt_show = labels[output_channel][:,:,0,0]
     
         img_vb = Variable(torch.from_numpy(img_temp[np.newaxis, :].transpose(0,3,1,2)).float(),volatile = True).cuda(gpu0)
         output = model(img_vb)
-        #interp = nn.UpsamplingBilinear2d(size=(resize_height, resize_width))
-        #output = interp(output[0]).cpu().data[0].numpy()
-        output = torch.max(output[output_channel],1)[1]
+        interp = nn.UpsamplingBilinear2d(size=(resize_height, resize_width))
+        output = interp(output[output_channel])
+        output = torch.max(output,1)[1]
         output = output[0].cpu().data.numpy()
         #output = output[:,:img_temp.shape[0],:img_temp.shape[1]]
 
@@ -172,10 +170,13 @@ for iter in range(1):   #TODO set the (different iteration)models that you want 
             plt.subplot(3, 1, 1)
             plt.imshow(img_original[:,:,::-1])
             plt.subplot(3, 1, 2)
-            plt.imshow(gt_show, vmin = 0, vmax = 34)
+            plt.imshow(gt_temp, vmin = 0, vmax = 34)
             plt.subplot(3, 1, 3)
             plt.imshow(output, vmin = 0, vmax = 34)
             plt.show()
+        
+        img=Image.fromarray(output.astype(np.uint8))
+        img.save("./data/saved_semantic/"+i[:-1]+".png")
 
         #iou_pytorch = get_iou(output,gt)
         #pytorch_list.append(iou_pytorch)
