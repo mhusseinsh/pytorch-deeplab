@@ -36,7 +36,7 @@ Options:
     -i, --iterSize=<int>         Num iters to accumulate gradients over [default: 8]
     --wtDecay=<float>            Weight decay during training [default: 0.0005]
     --gpu0=<int>                 GPU number [default: 0]
-    --maxIter=<int>              Maximum number of iterations [default: 100000]
+    --maxIter=<int>              Maximum number of iterations [default: 200000]
     --saveSnap=<str>             Maximum number of iterations [default: g2c1122]
 """
 
@@ -98,7 +98,7 @@ def get_data_from_chunk_v2(chunk, iter):
     resize_height = 513
     resize_width = 513
     
-    scale = random.uniform(0.8, 1.2) #random.uniform(0.5,1.5) does not fit in a Titan X with the present version of pytorch, so we random scaling in the range (0.5,1.3), different than caffe implementation in that caffe used only 4 fixed scales. Refer to read me
+    scale = random.uniform(0.6, 0.8) #random.uniform(0.5,1.5) does not fit in a Titan X with the present version of pytorch, so we random scaling in the range (0.5,1.3), different than caffe implementation in that caffe used only 4 fixed scales. Refer to read me
     
 
     dim = [int(scale*resize_height), int(scale*resize_width)]
@@ -107,12 +107,18 @@ def get_data_from_chunk_v2(chunk, iter):
 
     for i,piece in enumerate(chunk):
         flip_p = random.uniform(0, 1)
-        img_original = cv2.imread(os.path.join(img_path,piece+'.png')).astype(float)
+        img_original = cv2.imread(os.path.join(img_path,piece+'.png'))
+        gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))
+        if (gt_temp.shape[0] < img_original.shape[0]):
+            img_original = cv2.resize(img_original,(gt_temp.shape[1], gt_temp.shape[0]),interpolation=cv2.INTER_NEAREST)
+        elif (gt_temp.shape[0] > img_original.shape[0]):
+            gt_temp = cv2.resize(gt_temp,(img_original.shape[1], img_original.shape[0]),interpolation=cv2.INTER_NEAREST)
+        
         scale_crop_height = random.randint(0, img_original.shape[0]-resize_height)
         scale_crop_width = random.randint(0, img_original.shape[1]-resize_width)
         
-        #new_weidth = int((img_original.shape[1]-(img_original.shape[0]*16//9))//2)
-        #img_temp = img_original[:, new_weidth:-new_weidth]
+        #new_width = int((img_original.shape[1]-(img_original.shape[0]*16//9))//2)
+        #img_temp = img_original[:, new_width:-new_width]
         #img_temp = cv2.resize(img_temp,(resize_width,resize_height)).astype(float)
         
         img_original  = img_original[scale_crop_height:scale_crop_height+resize_height, scale_crop_width:scale_crop_width+resize_width]
@@ -127,11 +133,12 @@ def get_data_from_chunk_v2(chunk, iter):
         img_temp = flip(img_temp,flip_p)
         images[:,:,:,i] = img_temp
 
-        gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))[:, new_weidth:-new_weidth]
+        #gt_temp = np.array(Image.open(os.path.join(gt_path,piece+'.png')))[:, new_width:-new_width]
         #gt_temp[gt_temp == 255] = 0
         #gt_temp = cv2.resize(gt_temp,(resize_width,resize_height),interpolation=cv2.INTER_NEAREST)
         gt_temp = gt_temp[scale_crop_height:scale_crop_height+resize_height, scale_crop_width:scale_crop_width+resize_width]
         gt_temp = scale_gt(gt_temp,scale)
+
         gt_temp = flip(gt_temp,flip_p)
         gt[:,:,0,i] = gt_temp
         #a = outS(321*scale)#41
@@ -234,7 +241,7 @@ model.eval() # use_global_stats = True
 img_list = read_file(args['--LISTpath'])
 
 data_list = []
-for i in range(10):  # make list for 10 epocs, though we will only use the first max_iter*batch_size entries of this list
+for i in range(100):  # make list for 10 epocs, though we will only use the first max_iter*batch_size entries of this list
     np.random.shuffle(img_list)
     data_list.extend(img_list)
 
@@ -259,7 +266,6 @@ for iter in range(max_iter+1):
     loss = loss/iter_size
     loss.backward()
     if iter%20 == 0:
-        print images.size()
         writer.add_image('RAW', torch.cat((images[0,0:1,:,:]+104.008,images[0,1:2,:,:]+116.669, images[0,2:,:,:]+122.675),dim=0).type(torch.LongTensor), iter)
 
     if iter %1 == 0:
