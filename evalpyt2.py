@@ -29,8 +29,8 @@ Options:
     -h, --help                  Print this message
     --visualize                 view outputs of each sketch
     --snapShot=<str>            Snapshot [default: g2c1122_93000.pth]
-    --testGTpath=<str>          Ground truth path Shot [default: data/gt/]
-    --testIMpath=<str>          Sketch images path Shot [default: data/img/]
+    --testGTpath=<str>          Ground truth path Shot [default: data/train03B]
+    --testIMpath=<str>          Sketch images path Shot [default: data/train03B]
     --NoLabels=<int>            The number of different labels in training data, VOC has 21 labels, including background [default: 35]
     --gpu0=<int>                GPU number [default: 0]
 """
@@ -98,7 +98,7 @@ model.cuda(gpu0)
 snapShot = args['--snapShot']
 gt_path = args['--testGTpath']
 #img_list = open('data/list/train_aug.txt').readlines()
-img_list = open('./data/list/train_aug.txt').readlines()
+img_list = open('./data/list/trainblist.txt').readlines()
 
 #resize_height = 180
 #resize_width = 320
@@ -176,7 +176,7 @@ for iter in range(1):   #TODO set the (different iteration)models that you want 
             plt.show()
         
         img=Image.fromarray(output.astype(np.uint8))
-        img.save("./data/saved_semantic/"+i[:-1]+".png")
+        img.save("./data/B_semantic/"+i[:-1]+".png")
 
         #iou_pytorch = get_iou(output,gt)
         #pytorch_list.append(iou_pytorch)
