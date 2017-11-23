@@ -165,10 +165,15 @@ def loss_calc(out, label, gpu0, iter, count):
     #m = nn.LogSoftmax()
     #criterion = nn.NLLLoss2d()
     #out = m(out)
+    out_img = torch.max(out.data, 1)[1]
     if iter%20==0 and count==0:
         writer.add_image('GT'+str(count), label[0]*7, iter)
-        out_img = torch.max(out.data, 1)[1]
         writer.add_image('OUT'+str(count), out_img[0]*7, iter)
+    if count==0:   
+        plt.subplot(3, 1, 1)
+        plt.imshow(label[0].data.cpu().numpy(), vmin =0, vmax = 34)
+        plt.subplot(3, 1, 2)
+        plt.imshow(out_img[0].cpu().numpy(), vmin=0, vmax = 34)
 
     #return criterion(out,label)
     return F.nll_loss(F.log_softmax(out),label)
@@ -221,13 +226,13 @@ if not os.path.exists('data/snapshots'):
 
 model = deeplab_resnet.Res_Deeplab(int(args['--NoLabels']))
 
-saved_state_dict = torch.load('data/MS_DeepLab_resnet_pretrained_COCO_init.pth')
-if int(args['--NoLabels'])!=21:
-    for i in saved_state_dict:
-        #Scale.layer5.conv2d_list.3.weight
-        i_parts = i.split('.')
-        if i_parts[1]=='layer5':
-            saved_state_dict[i] = model.state_dict()[i]
+saved_state_dict = torch.load('./data/snapshots/g2c1122_93000.pth')
+#if int(args['--NoLabels'])!=21:
+    #for i in saved_state_dict:
+        ##Scale.layer5.conv2d_list.3.weight
+        #i_parts = i.split('.')
+        #if i_parts[1]=='layer5':
+            #saved_state_dict[i] = model.state_dict()[i]
 
 model.load_state_dict(saved_state_dict)
 
@@ -258,32 +263,36 @@ for iter in range(max_iter+1):
 
     images, label = get_data_from_chunk_v2(chunk, iter)
     images = Variable(images).cuda(gpu0)
-
-    out = model(images)
+    
+    print images[0,0,0:10,0:10]
+    out = model(Variable(images.data, volatile=True))
     loss = loss_calc(out[0], label[0], gpu0, iter, 0)
     iter_size = int(args['--iterSize'])
     for i in range(len(out)-1):
         loss = loss + loss_calc(out[i+1], label[i+1], gpu0, iter, i+1)
     loss = loss/iter_size
-    loss.backward()
+    #loss.backward()
     if iter%20 == 0:
         writer.add_image('RAW', torch.cat((images[0,0:1,:,:]+104.008,images[0,1:2,:,:]+116.669, images[0,2:,:,:]+122.675),dim=0).type(torch.LongTensor), iter)
+    plt.subplot(3, 1, 3)
+    plt.imshow(torch.cat((images[0,2:,:,:]+122.675,images[0,1:2,:,:]+116.669, images[0,0:1,:,:]+104.008),dim=0).cpu().data.numpy().transpose(1,2,0).astype(np.uint8))
+    plt.show()
 
-    if iter %1 == 0:
-        print 'iter = ',iter, 'of',max_iter,'completed, loss = ', iter_size*(loss.data.cpu().numpy())
-        writer.add_scalar('loss', iter_size*loss.data[0], iter)
-    if iter % iter_size  == 0:
-        optimizer.step()
-        lr_, weight_decay_ = lr_poly(base_lr, base_weight_decay, iter,max_iter,0.9)
-        print '(poly lr policy) learning rate',lr_
-        #optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': lr_ }, {'params': get_10x_lr_params(model), 'lr': 10*lr_} ], lr = lr_, momentum = 0.9,weight_decay = weight_decay_)
-        optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': lr_ }, {'params': get_10x_lr_params(model), 'lr': 10*lr_} ], lr = lr_, momentum = 0.9,weight_decay = base_weight_decay)
-        optimizer.zero_grad()
+    #if iter %1 == 0:
+        #print 'iter = ',iter, 'of',max_iter,'completed, loss = ', iter_size*(loss.data.cpu().numpy())
+        #writer.add_scalar('loss', iter_size*loss.data[0], iter)
+    #if iter % iter_size  == 0:
+        #optimizer.step()
+        #lr_, weight_decay_ = lr_poly(base_lr, base_weight_decay, iter,max_iter,0.9)
+        #print '(poly lr policy) learning rate',lr_
+        ##optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': lr_ }, {'params': get_10x_lr_params(model), 'lr': 10*lr_} ], lr = lr_, momentum = 0.9,weight_decay = weight_decay_)
+        #optimizer = optim.SGD([{'params': get_1x_lr_params_NOscale(model), 'lr': lr_ }, {'params': get_10x_lr_params(model), 'lr': 10*lr_} ], lr = lr_, momentum = 0.9,weight_decay = base_weight_decay)
+        #optimizer.zero_grad()
 
-    if iter % 1000 == 0 and iter!=0:
-        print 'taking snapshot ...'
-        torch.save(model.state_dict(),'data/snapshots/'+args['--saveSnap']+'_'+str(iter)+'.pth')
-end = timeit.timeit
-print end-start,'seconds'
-writer.export_scalars_to_json("./all_scalars.json")
-writer.close()
+    #if iter % 1000 == 0 and iter!=0:
+        #print 'taking snapshot ...'
+        #torch.save(model.state_dict(),'data/snapshots/'+args['--saveSnap']+'_'+str(iter)+'.pth')
+#end = timeit.timeit
+#print end-start,'seconds'
+#writer.export_scalars_to_json("./all_scalars.json")
+#writer.close()
