@@ -50,9 +50,9 @@ class Params(object):   # NOTE: shared across all modules
         # NOTE: will load pretrained model_file if not None
         self.model_file  = self.root_dir + "/models/pretrained.pth"
         if self.mode == 2:
-            self.model_file  = self.model_name  # NOTE: so only need to change self.mode to 2 to test the current training
+            self.model_file  = self.model_name
             assert self.model_file is not None, "Pre-Trained model is None, Testing aborted!!!"
-            self.refs = self.refs + "_test"     # NOTE: using this as env for visdom for testing, to avoid accidentally redraw on the training plots
+            self.refs = self.refs + "_test"     
 
         # logging configs
         self.log_name    = self.root_dir + "/logs/" + self.refs + ".log"
