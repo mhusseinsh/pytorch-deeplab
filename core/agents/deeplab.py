@@ -104,14 +104,15 @@ class DeeplabAgent(Agent):
         labelVar = Variable(torch.from_numpy(label).type(self.dtype),
                 volatile=volatile)
         label_resized = interp(labelVar)
-        return label_resized.Long()
+        return label_resized.long()
 
     def get_train_list(self):
         img_list = read_file(self.list_path)
         self.data_len=len(img_list)
         data_list = []
         for i in range(self.epochs):
-            np.random.shuffle(img_list)
+            if self.mode == 1:
+                np.random.shuffle(img_list)
             data_list.extend(img_list)
         return data_list
     
@@ -157,11 +158,10 @@ class DeeplabAgent(Agent):
             img[:,:,0] = img[:,:,0] - 104.008
             img[:,:,1] = img[:,:,1] - 116.669
             img[:,:,2] = img[:,:,2] - 122.675
-            
+            print (img)
             if self.flip_flag: 
                 img = flip(img, flip_p)
-                if self.mode==1 or self.with_gt:
-                    gt = flip(gt, flip_p)
+                gt = flip(gt, flip_p)
             
             images.append(img[np.newaxis, :])
             if self.mode==1 or self.with_gt:

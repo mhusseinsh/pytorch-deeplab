@@ -22,7 +22,7 @@ class Params(object):   # NOTE: shared across all modules
         self.machine     = "hpcgpu7"    # "machine_id"
         self.timestamp   = "17112300"   # "yymmdd## "
         # training configuration
-        self.mode        = 1            # 1(train) | 2(test model_file)
+        self.mode        = 2            # 1(train) | 2(test model_file)
         self.config      = 0
         self.save_imgs   = True         # TODO: only effect test_model when mode==2
         self.segmentation_labels = 35
@@ -45,7 +45,7 @@ class Params(object):   # NOTE: shared across all modules
         # NOTE: will save the current model to model_name
         self.model_name  = self.root_dir + "/models/" + self.refs + ".pth"
         # NOTE: will load pretrained model_file if not None
-        self.model_file  = self.root_dir + "/models/pretrained.pth"
+        self.model_file  = self.root_dir + "/models/hpcgpu7_17112301.pth"
         if self.mode == 2:
             self.model_file  = self.model_name
             assert self.model_file is not None, "Pre-Trained model is None, Testing aborted!!!"
@@ -80,17 +80,26 @@ class AgentParams(Params):  # settings for network architecture
             self.epochs         = 100
             self.test_steps     = 50
             
-            self.iter_size      = 8
-            self.train_list = "train_aug.txt"
-            self.train_list_path    = self.root_dir+"/data/list/"+self.train_list
-            self.train_img_path     = self.root_dir+"/data/img/"
-            self.train_gt_path      = self.root_dir+"/data/gt/"
-            self.img_extend_name    = '.png'
-            self.gt_extend_name     = '.png'
             self.flip_flag          = True
             self.resize_width       = 513
             self.resize_height      = 513
             self.scale_range        = [0.6, 0.8]
+            self.iter_size      = 8
+
+            self.data_list_file = "train_aug.txt"
+            if self.mode==2:
+                self.resize_width       = 1800
+                self.resize_height      = 900
+                self.batch_size = 1
+                self.epochs = 1
+                self.data_list_file  = "val.txt"
+                self.with_gt = True
+                self.flip_flag = False
+            self.list_path    = self.root_dir+"/data/list/"+self.data_list_file
+            self.img_path     = self.root_dir+"/data/img/"
+            self.gt_path      = self.root_dir+"/data/gt/"
+            self.img_extend_name    = '.png'
+            self.gt_extend_name     = '.png'
 
             self.lr_decay_start = 50#100     # # of iter at starting learning rate
             self.beta1          = 0.5
