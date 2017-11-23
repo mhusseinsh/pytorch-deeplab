@@ -97,7 +97,6 @@ class DeeplabAgent(Agent):
 
     def resize_label_batch(self, label, size):
         label_resized = np.zeros((size[0],size[1],1,label.shape[3]))
-        #interp = nn.UpsamplingBilinear2d(size=(size[0], size[1]))
         interp = nn.Upsample(size=(size[0], size[1]), mode='bilinear')
         labelVar = Variable(torch.from_numpy(label).type(torch.cuda.FloatTensor), volatile=True)
         label_resized = interp(labelVar)
