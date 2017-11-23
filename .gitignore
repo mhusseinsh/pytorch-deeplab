@@ -11,6 +11,8 @@ data/gt/**
 data/img/**
 data/*.pth
 data/snapshots/**
+!models
+models/*
 !runs
 runs/**
 # Byte-compiled / optimized / DLL files

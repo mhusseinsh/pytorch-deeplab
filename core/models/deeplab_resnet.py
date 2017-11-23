@@ -3,20 +3,20 @@ import math
 import torch.utils.model_zoo as model_zoo
 import torch
 import numpy as np
+from utils.helpers import outS, conv3x3
+
 affine_par = True
 
-
-def outS(i):
-    i = int(i)
-    i = (i+1)/2
-    i = int(np.ceil((i+1)/2.0))
-    i = (i+1)/2
-    return i
-def conv3x3(in_planes, out_planes, stride=1):
-    "3x3 convolution with padding"
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
-                     padding=1, bias=False)
-
+#def outS(i):
+    #i = int(i)
+    #i = (i+1)/2
+    #i = int(np.ceil((i+1)/2.0))
+    #i = (i+1)/2
+    #return i
+#def conv3x3(in_planes, out_planes, stride=1):
+    #"3x3 convolution with padding"
+    #return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                     #padding=1, bias=False)
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -189,9 +189,9 @@ class MS_Deeplab(nn.Module):
     def forward(self,x):
         input_size1 = x.size()[2]
         input_size2 = x.size()[3]
-        self.interp1 = nn.UpsamplingBilinear2d(size = (int(input_size1*0.75)+1, int(input_size2*0.75)+1))
-        self.interp2 = nn.UpsamplingBilinear2d(size = (int(input_size1*0.5)+1, int(input_size2*0.5)+1))
-        self.interp3 = nn.UpsamplingBilinear2d(size = (outS(input_size1), outS(input_size2)))
+        self.interp1 = nn.Upsample(size = (int(input_size1*0.75)+1, int(input_size2*0.75)+1), mode='bilinear')
+        self.interp2 = nn.Upsample(size = (int(input_size1*0.5)+1, int(input_size2*0.5)+1), mode='bilinear')
+        self.interp3 = nn.Upsample(size = outS([input_size1, input_size2]), mode='bilinear')
         out = []
         x2 = self.interp1(x)
         x3 = self.interp2(x)

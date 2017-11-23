@@ -6,7 +6,7 @@ import torch
 import torch.optim as optim
 
 class Agent(object):
-    def __init__(self, args, env_prototype, model_prototype, loss_model_prototype):
+    def __init__(self, args, model_prototype):
         self.mode = args.mode
         self.save_imgs = args.save_imgs
         if self.mode == 2 and self.save_imgs:
@@ -20,18 +20,12 @@ class Agent(object):
         # logging
         self.logger = args.logger
 
-        self.save_prog = args.save_prog
-        self.save_freq = args.save_freq
         self.refs = args.refs
         self.root_dir = args.root_dir
 
         # prototypes for env & model & loss_model
-        self.env_prototype = env_prototype
-        self.env_params = args.env_params
         self.model_prototype = model_prototype
         self.model_params = args.model_params
-        self.loss_model_prototype = loss_model_prototype
-        self.loss_model_params = args.loss_model_params
 
         # params
         self.model_name = args.model_name           # NOTE: will save the current model to model_name
@@ -41,8 +35,7 @@ class Agent(object):
         self.visualize = args.visualize
         if self.visualize:
             self.vis = args.vis
-            self.refs = args.refs
-
+            self.writer = args.writer
         self.save_best = args.save_best
         if self.save_best:
             self.best_step   = None                 # NOTE: achieves best_reward at this step
@@ -52,19 +45,16 @@ class Agent(object):
         self.dtype = args.dtype
 
         # agent_params
-        # criteria and optimizer
         self.criteria = args.criteria
         self.optim = args.optim
+        
         # hyperparameters
         self.steps = args.steps
         self.batch_size = args.batch_size
-        self.clip_grad = args.clip_grad
         self.lr = args.lr
         self.lr_decay = args.lr_decay
         self.weight_decay = args.weight_decay
-        self.eval_freq = args.eval_freq
-        self.eval_steps = args.eval_steps
-        self.prog_freq = args.prog_freq
+        self.epochs = args.epochs
         self.test_steps = args.test_steps
 
     def _load_model(self, model_file):

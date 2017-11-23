@@ -144,8 +144,8 @@ def get_data_from_chunk_v2(chunk, iter):
         gt[:,:,0,i] = gt_temp
         #a = outS(321*scale)#41
         #b = outS((321*0.5)*scale+1)#21
-        a = outS(dim)#41
-        b = outS([dim[0]*0.5+1, dim[1]*0.5+1])#21
+    a = outS(dim)#41
+    b = outS([dim[0]*0.5+1, dim[1]*0.5+1])#21
     # output is not as the same as the original image
     labels = [resize_label_batch(gt,i) for i in [a,a,b,a]]
     images = images.transpose((3,2,0,1))
