@@ -163,7 +163,6 @@ class DeeplabAgent(Agent):
                 img = flip(img, flip_p)
                 gt = flip(gt, flip_p)
             
-            print (img)
             images.append(img[np.newaxis, :])
             if self.mode==1 or self.with_gt:
                 gts.append(gt[np.newaxis, np.newaxis, :])
@@ -244,11 +243,17 @@ class DeeplabAgent(Agent):
         data_gen = chunker(self.get_train_list())
         self.max_iter = int(self.data_len)
         self.step = 0
-
+        interp = nn.UpsamplingBilinear2d(size=(self.resize_height, self.resize_width))
         for self.step in range(self.max_iter):
             chunk = data_gen.next()
             imgs_vb, gts_vb_list = self.get_data_from_chunk(chunk, volatile=True)
+            print (imgs_vb[0])
+            raw_input()
             out_vb_list = self.model(imgs_vb)
+            
+            output = interp(out_vb_list[3])
+            out_img = torch.max(output,1)[1][0]
+             
             
             if self.visualize:
                 self.writer.add_image(self.refs+'/RAW', torch.cat((imgs_vb[0,0:1,:,:]+104.008,imgs_vb[0,1:2,:,:]+116.669, imgs_vb[0,2:,:,:]+122.675),dim=0).type(torch.LongTensor), self.step)
