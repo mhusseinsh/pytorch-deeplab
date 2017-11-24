@@ -1,4 +1,4 @@
-# pytorch-deeplab-resnet
+# pytorch-deeplab
 [DeepLab resnet](https://arxiv.org/abs/1606.00915) model implementation in pytorch.
 
 
