@@ -66,17 +66,18 @@ class DeeplabAgent(Agent):
     def __init__(self, args, model_prototype):
         super(DeeplabAgent, self).__init__(args, model_prototype)
         self.model = self.model_prototype(self.model_params)
+        self.model.eval()  # NOTE: very important, do not use batch
 
         if self.model_file:
-            saved_state_dict = torch.load(self.model_file)
             if self.mode==1:
+                saved_state_dict = torch.load(self.model_file)
                 for i in saved_state_dict:
                     #Scale.layer5.conv2d_list.3.weight
                     i_parts = i.split('.')
                     if i_parts[1]=='layer5':
                         if saved_state_dict[i].size(0)!=self.model.state_dict()[i].size(0):
                             saved_state_dict[i] = self.model.state_dict()[i]
-            self.model.load_state_dict(saved_state_dict)
+                self.model.load_state_dict(saved_state_dict)
 
         if self.use_cuda:
             self.model.type(self.dtype)
@@ -117,8 +118,11 @@ class DeeplabAgent(Agent):
         return data_list
     
     def get_data_from_chunk(self, chunk, volatile=False):
-        scale = random.uniform(self.scale_range[0], 
+        if self.mode==1:
+            scale = random.uniform(self.scale_range[0], 
                 self.scale_range[1])
+        else:
+            scale=1
         dim = [int(scale*self.resize_height), 
                 int(scale*self.resize_width)]
         images = []
@@ -240,10 +244,11 @@ class DeeplabAgent(Agent):
     def test_model(self):
         self.logger.warning("<===================================> Testing ...")
         self._load_model(self.model_name)
+        print (self.model_name)
         data_gen = chunker(self.get_train_list())
         self.max_iter = int(self.data_len)
         self.step = 0
-        interp = nn.UpsamplingBilinear2d(size=(self.resize_height, self.resize_width))
+        interp = nn.Upsample(size=(self.resize_height, self.resize_width), mode='bilinear')
         for self.step in range(self.max_iter):
             chunk = data_gen.next()
             imgs_vb, gts_vb_list = self.get_data_from_chunk(chunk, volatile=True)

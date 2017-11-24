@@ -60,7 +60,7 @@ class Params(object):   # NOTE: shared across all modules
             self.vis = visdom.Visdom()
             #self.logger.warning("bash$: python -m visdom.server")           # activate visdom server on bash
             #self.logger.warning("http://localhost:8097/env/" + self.refs)   # open this address on browser
-            self.writer = SummaryWriter()
+            self.writer = SummaryWriter(self.root_dir + '/runs/' + self.refs)
             self.logger.warning("bash$: tensorboardX --logdir run/")           # activate visdom server on bash
             self.logger.warning("http://localhost:6006")   # open this address on browser
 
