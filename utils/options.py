@@ -22,11 +22,12 @@ class Params(object):   # NOTE: shared across all modules
         self.machine     = "hpcgpu7"    # "machine_id"
         self.timestamp   = "17112301"   # "yymmdd## "
         # training configuration
-        self.mode        = 2            # 1(train) | 2(test model_file)
+        self.mode        = 1            # 1(train) | 2(test model_file)
         self.config      = 0
         self.save_imgs   = True         # TODO: only effect test_model when mode==2
+        self.save_freq   = 2000
         self.segmentation_labels = 35
-
+        
         self.seed        = 1
         self.render      = False        # whether render the window from the original envs or not
         self.visualize   = True         # whether do online plotting and stuff or not
@@ -45,7 +46,8 @@ class Params(object):   # NOTE: shared across all modules
         # NOTE: will save the current model to model_name
         self.model_name  = self.root_dir + "/models/" + self.refs + ".pth"
         # NOTE: will load pretrained model_file if not None
-        self.model_file  = self.root_dir + "/models/hpcgpu7_17112301.pth"
+        #self.model_file  = self.root_dir + "/models/hpcgpu7_17112301.pth"
+        self.model_file  = self.root_dir + "/models/pretrained.pth"
         if self.mode == 2:
             self.model_file  = self.model_name
             assert self.model_file is not None, "Pre-Trained model is None, Testing aborted!!!"
@@ -81,20 +83,20 @@ class AgentParams(Params):  # settings for network architecture
             self.test_steps     = 50
             
             self.flip_flag          = True
-            self.resize_width       = 513
-            self.resize_height      = 513
+            self.crop_width       = 513
+            self.crop_height      = 513
             self.scale_range        = [0.6, 0.8]
             self.iter_size      = 8
-
+            self.output_c  = 3
             self.data_list_file = "train_aug.txt"
             if self.mode==2:
-                self.resize_width       = 1800
-                self.resize_height      = 900
+                self.crop_width       = 1800
+                self.crop_height      = 900
                 self.batch_size = 1
                 self.epochs = 1
                 self.data_list_file  = "val.txt"
-                self.with_gt = True
                 self.flip_flag = False
+                self.scale_range       = [1, 1]
             self.list_path    = self.root_dir+"/data/list/"+self.data_list_file
             self.img_path     = self.root_dir+"/data/img/"
             self.gt_path      = self.root_dir+"/data/gt/"
