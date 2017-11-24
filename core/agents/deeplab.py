@@ -163,6 +163,7 @@ class DeeplabAgent(Agent):
                 img = flip(img, flip_p)
                 gt = flip(gt, flip_p)
             
+            print (img)
             images.append(img[np.newaxis, :])
             if self.mode==1 or self.with_gt:
                 gts.append(gt[np.newaxis, np.newaxis, :])
@@ -172,7 +173,7 @@ class DeeplabAgent(Agent):
             a = outS(dim)
             b = outS([dim[0]*0.5+1, dim[1]*0.5+1])
             gts_vb_list = [self.resize_label_batch(gts,i, volatile) for i in [a,a,b,a]]
-        imgs_vb = Variable(torch.from_numpy(images).type(self.dtype), volatile=volatile)
+        imgs_vb = Variable(torch.from_numpy(images).float().type(self.dtype), volatile=volatile)
 
         #print(gts_vb_list[0].size(), 
                 #gts_vb_list[1].size(),
