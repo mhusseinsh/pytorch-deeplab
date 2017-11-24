@@ -12,14 +12,6 @@ data/img/**
 data/*.pth
 data/snapshots/**
 deprecated/**
-!logs
-!models
-!imgs
-imgs/*
-logs/*
-models/*
-!runs
-runs/**
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
