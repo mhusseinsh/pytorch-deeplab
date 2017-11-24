@@ -98,7 +98,7 @@ class DeeplabAgent(Agent):
         if self.mode==1:
             self.optim = args.optim([{'params': get_1x_lr_params_NOscale(self.model), 'lr': self.lr }, {'params': get_10x_lr_params(self.model), 'lr': 10*self.lr} ], lr = self.lr, momentum = 0.9,weight_decay = self.weight_decay)
 
-        self.enlarge_param = int(np.floor(255 / args.segmentation_labels))
+        self.enlarge_param = 1.0 / args.segmentation_labels
         self.interp = nn.Upsample(size=(self.crop_height, self.crop_width), mode='bilinear')
         
         if self.mode==3:
@@ -239,11 +239,12 @@ class DeeplabAgent(Agent):
                         self.img_transfer(imgs_vb[0]),
                         self.step)
                 self.writer.add_image(self.refs+'/GT', 
-                        gts_vb_list[self.output_c][0]*self.enlarge_param,
+                        gts_vb_list[self.output_c][0].float() \
+                                * self.enlarge_param,
                         self.step)
                 out_img = torch.max(out_vb_list[self.output_c], 1)[1]
                 self.writer.add_image(self.refs+'/OUT',
-                        out_img[0]*self.enlarge_param, 
+                        out_img[0].float()*self.enlarge_param, 
                         self.step)
             if self.step % self.save_freq==0:
                 self._save_model(self.step)
@@ -279,11 +280,12 @@ class DeeplabAgent(Agent):
                         self.img_transfer(imgs_vb[0]),
                         self.step)
                 self.writer.add_image(self.refs+'/GT', 
-                        gts_vb_list[self.output_c][0]*self.enlarge_param, 
+                        gts_vb_list[self.output_c][0].float() \
+                                * self.enlarge_param, 
                         self.step)
                 out_img = torch.max(out_vb_list[self.output_c], 1)[1]
                 self.writer.add_image(self.refs+'/OUT',
-                        out_img[0]*self.enlarge_param, 
+                        out_img[0].float()*self.enlarge_param, 
                         self.step)
         self.writer.close()
     
