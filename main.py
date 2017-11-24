@@ -14,4 +14,5 @@ if opt.mode == 1:
     agent.fit_model()
 elif opt.mode == 2:
     agent.test_model()
-
+elif opt.mode == 3:
+    agent.generate_model()
