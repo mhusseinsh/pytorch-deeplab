@@ -6,6 +6,7 @@
 !data
 data/*gt
 data/*img
+data/*depth
 data/saved_semantic
 data/gt/**
 data/img/**

@@ -80,8 +80,6 @@ class DeeplabAgent(Agent):
                             saved_state_dict[i] = self.model.state_dict()[i]
                 self.model.load_state_dict(saved_state_dict)
 
-        if self.use_cuda:
-            self.model.type(self.dtype)
         self.crop_width  = args.crop_width
         self.crop_height = args.crop_height
         self.scale_range   = args.scale_range
@@ -94,8 +92,10 @@ class DeeplabAgent(Agent):
         assert(self.train_target=="depth" or self.train_target=="semantic")
         self.flip_flag     = args.flip_flag
         if self.train_target == "depth":
-            self.f_act = nn.Linear(1,1)
             self.criteria = args.criteria
+        
+        if self.use_cuda:
+            self.model.type(self.dtype)
 
         self.img_extend_name    = args.img_extend_name
         self.gt_extend_name     = args.gt_extend_name
@@ -116,7 +116,7 @@ class DeeplabAgent(Agent):
         labelVar = Variable(torch.from_numpy(label).type(self.dtype),
                 volatile=volatile)
         label_resized = interp(labelVar)
-        return label_resized.long()
+        return label_resized
 
     def get_train_list(self):
         img_list = read_file(self.list_path)
@@ -144,9 +144,9 @@ class DeeplabAgent(Agent):
                 gt = np.array(Image.open(
                     os.path.join(self.gt_path, 
                         piece+self.gt_extend_name)))
-            else self.train_target=="depth":
-                gt = np.load(os.path.join(self.gt_path, 
-                        piece+".npy"))
+            elif self.train_target=="depth":
+                gt = np.clip( np.load(os.path.join(self.gt_path, 
+                        piece+".npy")), a_min=0, a_max=0.3)/0.15 - 1
             if (gt.shape[0] < img.shape[0]):
                 img = cv2.resize(img,
                         (gt.shape[1], gt.shape[0]),
@@ -228,12 +228,11 @@ class DeeplabAgent(Agent):
             for i in range(len(out_vb_list)):
                 if self.train_target == "semantic":
                     loss += F.nll_loss(F.log_softmax(out_vb_list[i]),
-                            gts_vb_list[i][0])
+                            gts_vb_list[i][0].long())
                 elif self.train_target == "depth":
                     if i< len(out_vb_list)-1:
-                        loss += self.criteria(
-                            self.f_act(out_vb_list[i].transpose(0,2,3,1)), 
-                            gts_vb_list[i].transpose(0,2,3,1))
+                        loss += self.criteria(out_vb_list[i],
+                            gts_vb_list[i])
             loss = loss/self.iter_size
             loss.backward()
             
@@ -251,14 +250,23 @@ class DeeplabAgent(Agent):
                 self.writer.add_image(self.refs+'/RAW', 
                         self.img_transfer(imgs_vb[0]),
                         self.step)
-                self.writer.add_image(self.refs+'/GT', 
-                        gts_vb_list[self.output_c][0].float() \
-                                * self.enlarge_param,
-                        self.step)
-                out_img = torch.max(out_vb_list[self.output_c], 1)[1]
-                self.writer.add_image(self.refs+'/OUT',
-                        out_img[0].float()*self.enlarge_param, 
-                        self.step)
+                if self.train_target == "semantic":
+                    self.writer.add_image(self.refs+'/GT', 
+                            gts_vb_list[self.output_c][0] \
+                                    * self.enlarge_param,
+                            self.step)
+                    out_img = torch.max(out_vb_list[self.output_c], 1)[1]
+                    self.writer.add_image(self.refs+'/OUT',
+                            out_img[0].float()*self.enlarge_param, 
+                            self.step)
+                elif self.train_target == "depth":
+                    self.writer.add_image(self.refs+'/GT', 
+                            (gts_vb_list[self.output_c][0]+1)/2,
+                            self.step)
+                    self.writer.add_image(self.refs+'/OUT',
+                            (out_vb_list[self.output_c][0]+1)/2, 
+                            self.step)
+
             if self.step % self.save_freq==0:
                 self._save_model(self.step)
 
