@@ -24,6 +24,7 @@ class Params(object):   # NOTE: shared across all modules
         # training configuration
         self.mode        = 1            # 1(train) | 2(test model_file)
         self.config      = 0
+        self.train_target   = "depth" # depth|semantic
         
         self.seed        = 1
         self.render      = False        # whether render the window from the original envs or not
@@ -86,7 +87,6 @@ class AgentParams(Params):  # settings for network architecture
             self.output_c         = 3  # output which one in the 4 outputs
             self.segmentation_labels = 13
            
-            self.train_target   = "depth" # depth|semantic
             if self.train_target == "depth":
                 self.criteria = nn.MSELoss()
                 self.gt_path = self.root_dir+"/data/depth/"
