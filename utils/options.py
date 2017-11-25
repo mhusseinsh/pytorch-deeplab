@@ -19,12 +19,12 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "local"    # "machine_id"
-        self.timestamp   = "test"   # "yymmdd## "
+        self.machine     = "hpcgpu2"    # "machine_id"
+        self.timestamp   = "17112500"   # "yymmdd## "
         # training configuration
-        self.mode        = 2            # 1(train) | 2(test model_file)
+        self.mode        = 1            # 1(train) | 2(test model_file)
         self.config      = 0
-        self.segmentation_labels = 35
+        self.segmentation_labels = 13
         
         self.seed        = 1
         self.render      = False        # whether render the window from the original envs or not
@@ -82,12 +82,12 @@ class AgentParams(Params):  # settings for network architecture
             self.save_freq      = 2000
             
             self.flip_flag          = True
-            self.crop_width       = 513
-            self.crop_height      = 513
-            self.scale_range        = [0.6, 0.8]
+            self.crop_width       = 425
+            self.crop_height      = 425
+            self.scale_range        = [0.7, 0.9]
             self.iter_size      = 8
             self.output_c  = 3
-            self.data_list_file = "train_aug.txt"
+            self.data_list_file = "carla_2500.txt"
             if self.mode==2:
                 self.crop_width       = 1600
                 self.crop_height      = 900
@@ -111,9 +111,6 @@ class AgentParams(Params):  # settings for network architecture
             self.gt_path      = self.root_dir+"/data/gt/"
             self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
-
-            self.lr_decay_start = 50#100     # # of iter at starting learning rate
-            self.beta1          = 0.5
 
         self.model_params       = self.segmentation_labels
 
