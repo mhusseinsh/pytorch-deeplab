@@ -19,8 +19,8 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "hpcgpu7"    # "machine_id"
-        self.timestamp   = "17112301"   # "yymmdd## "
+        self.machine     = "local"    # "machine_id"
+        self.timestamp   = "test"   # "yymmdd## "
         # training configuration
         self.mode        = 2            # 1(train) | 2(test model_file)
         self.config      = 0
@@ -89,13 +89,13 @@ class AgentParams(Params):  # settings for network architecture
             self.output_c  = 3
             self.data_list_file = "train_aug.txt"
             if self.mode==2:
-                self.crop_width       = 1800
+                self.crop_width       = 1600
                 self.crop_height      = 900
                 self.batch_size = 1
                 self.epochs = 1
                 self.data_list_file  = "val.txt"
                 self.flip_flag = False
-                self.scale_range       = [1, 1]
+                self.scale_range       = [0.2, 0.2]
             elif self.mode==3:
                 self.crop_width       = 1800
                 self.crop_height      = 900
@@ -105,7 +105,6 @@ class AgentParams(Params):  # settings for network architecture
                 self.epochs = 1
                 self.data_list_file  = "val.txt"
                 self.flip_flag = False
-                self.scale_range = [1, 1]
                 self.save_imgs=True
             self.list_path    = self.root_dir+"/data/list/"+self.data_list_file
             self.img_path     = self.root_dir+"/data/img/"
