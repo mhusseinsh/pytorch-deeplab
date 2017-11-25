@@ -90,9 +90,13 @@ class DeeplabAgent(Agent):
         self.list_path = args.list_path
         self.img_path = args.img_path
         self.gt_path = args.gt_path
-        
+        self.train_target = args.train_target
+        assert(self.train_target=="depth" or self.train_target=="semantic")
         self.flip_flag     = args.flip_flag
-        
+        if self.train_target == "depth":
+            self.f_act = nn.Linear(1,1)
+            self.criteria = args.criteria
+
         self.img_extend_name    = args.img_extend_name
         self.gt_extend_name     = args.gt_extend_name
         if self.mode==1:
@@ -136,10 +140,13 @@ class DeeplabAgent(Agent):
             img = cv2.imread(
                     os.path.join(self.img_path, 
                         piece+self.img_extend_name))
-            gt = np.array(Image.open(
-                os.path.join(self.gt_path, 
-                    piece+self.gt_extend_name))) 
-            
+            if self.train_target=="semantic":
+                gt = np.array(Image.open(
+                    os.path.join(self.gt_path, 
+                        piece+self.gt_extend_name)))
+            else self.train_target=="depth":
+                gt = np.load(os.path.join(self.gt_path, 
+                        piece+".npy"))
             if (gt.shape[0] < img.shape[0]):
                 img = cv2.resize(img,
                         (gt.shape[1], gt.shape[0]),
@@ -219,8 +226,14 @@ class DeeplabAgent(Agent):
             out_vb_list = self.model(imgs_vb)
             loss = 0
             for i in range(len(out_vb_list)):
-                loss += F.nll_loss(F.log_softmax(out_vb_list[i]),
-                        gts_vb_list[i][0])
+                if self.train_target == "semantic":
+                    loss += F.nll_loss(F.log_softmax(out_vb_list[i]),
+                            gts_vb_list[i][0])
+                elif self.train_target == "depth":
+                    if i< len(out_vb_list)-1:
+                        loss += self.criteria(
+                            self.f_act(out_vb_list[i].transpose(0,2,3,1)), 
+                            gts_vb_list[i].transpose(0,2,3,1))
             loss = loss/self.iter_size
             loss.backward()
             

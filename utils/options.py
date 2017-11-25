@@ -24,7 +24,6 @@ class Params(object):   # NOTE: shared across all modules
         # training configuration
         self.mode        = 1            # 1(train) | 2(test model_file)
         self.config      = 0
-        self.segmentation_labels = 13
         
         self.seed        = 1
         self.render      = False        # whether render the window from the original envs or not
@@ -69,7 +68,6 @@ class AgentParams(Params):  # settings for network architecture
         super(AgentParams, self).__init__()
 
         if self.agent_type == "Deeplab":
-            self.criteria       = nn.MSELoss()
             self.optim          = optim.SGD
             
             self.steps          = 5000 
@@ -80,13 +78,16 @@ class AgentParams(Params):  # settings for network architecture
             self.epochs         = 100
             self.test_steps     = 50
             self.save_freq      = 2000
-            
+           
+            self.train_target   = "depth" # depth|semantic
+            if self.train_target = "depth":
+                self.criteria       = nn.MSELoss()
             self.flip_flag          = True
             self.crop_width       = 425
             self.crop_height      = 425
-            self.scale_range        = [0.7, 0.9]
-            self.iter_size      = 8
-            self.output_c  = 3
+            self.scale_range      = [0.7, 0.9]
+            self.iter_size        = 8
+            self.output_c         = 3  # output which one in the 4 outputs
             self.data_list_file = "carla_2500.txt"
             if self.mode==2:
                 self.crop_width       = 1600
@@ -112,6 +113,10 @@ class AgentParams(Params):  # settings for network architecture
             self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
 
+        if self.train_target == "depth":
+            self.segmentation_labels = 1
+        else:
+            self.segmentation_labels = 13
         self.model_params       = self.segmentation_labels
 
 class Options(Params):
