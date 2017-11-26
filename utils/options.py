@@ -20,11 +20,11 @@ class Params(object):   # NOTE: shared across all modules
 
         # training signature
         self.machine     = "hpcgpu2"    # "machine_id"
-        self.timestamp   = "17112508"   # "yymmdd## "
+        self.timestamp   = "17112600"   # "yymmdd## "
         # training configuration
-        self.mode        = 3            # 1(train) | 2(test) | 3(generate image)
+        self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
-        self.train_target   = "semantic" # depth|semantic
+        self.train_target   = "depth" # depth|semantic
         
         self.seed        = 1
         self.render      = False        # whether render the window from the original envs or not
@@ -44,8 +44,8 @@ class Params(object):   # NOTE: shared across all modules
         # NOTE: will save the current model to model_name
         self.model_name  = self.root_dir + "/models/" + self.refs + ".pth"
         # NOTE: will load pretrained model_file if not None
-        #self.model_file  = self.root_dir + "/models/hpcgpu7_17112301.pth"
-        self.model_file  = self.root_dir + "/models/pretrained.pth"
+        #self.model_file  = self.root_dir + "/models/pretrained.pth"
+        self.model_file  = None
         if self.mode == 2:
             self.model_file  = self.model_name
             assert self.model_file is not None, "Pre-Trained model is None, Testing aborted!!!"
@@ -74,7 +74,7 @@ class AgentParams(Params):  # settings for network architecture
             
             self.steps          = 5000 
             self.batch_size     = 1
-            self.lr             = 0.00025
+            self.lr             = 0.00001
             self.lr_decay       = False
             self.weight_decay   = 0.0005
             self.epochs         = 100
@@ -97,18 +97,18 @@ class AgentParams(Params):  # settings for network architecture
                 self.segmentation_labels = 1
                 self.lr             = 0.00001
             
+            self.data_list_file = "img_2500.txt"
             self.flip_flag          = True
             self.crop_width       = 425
             self.crop_height      = 425
             self.scale_range      = [0.7, 0.9]
             self.iter_size        = 8
-            self.data_list_file = "carla_2500.txt"
             if self.mode==2:
+                self.data_list_file  = "val.txt"
                 self.crop_width       = 1600
                 self.crop_height      = 900
                 self.batch_size = 1
                 self.epochs = 1
-                self.data_list_file  = "val.txt"
                 self.flip_flag = False
                 self.scale_range       = [0.2, 0.2]
             elif self.mode==3:
