@@ -1,1 +1,0 @@
-/home/tai/cvpr18/dataset/cityscape/leftImg8bit/train_extra/trainblist

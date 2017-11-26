@@ -20,11 +20,11 @@ class Params(object):   # NOTE: shared across all modules
 
         # training signature
         self.machine     = "hpcgpu2"    # "machine_id"
-        self.timestamp   = "17112501"   # "yymmdd## "
+        self.timestamp   = "17112508"   # "yymmdd## "
         # training configuration
-        self.mode        = 1            # 1(train) | 2(test model_file)
+        self.mode        = 3            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
-        self.train_target   = "depth" # depth|semantic
+        self.train_target   = "semantic" # depth|semantic
         
         self.seed        = 1
         self.render      = False        # whether render the window from the original envs or not
@@ -70,6 +70,7 @@ class AgentParams(Params):  # settings for network architecture
 
         if self.agent_type == "Deeplab":
             self.optim          = optim.SGD
+            self.criteria = nn.MSELoss()
             
             self.steps          = 5000 
             self.batch_size     = 1
@@ -111,13 +112,14 @@ class AgentParams(Params):  # settings for network architecture
                 self.flip_flag = False
                 self.scale_range       = [0.2, 0.2]
             elif self.mode==3:
-                self.crop_width       = 1800
-                self.crop_height      = 900
-                self.resize_width     = 1800
-                self.resize_height    = 900
+                self.crop_width       = 800
+                self.crop_height      = 600
+                self.resize_width     = 800
+                self.resize_height    = 600
                 self.batch_size = 1
                 self.epochs = 1
-                self.data_list_file  = "val.txt"
+                self.data_list_file  = "img_train03_B.txt"
+                self.img_path     = self.root_dir+"/data/train03_B"
                 self.flip_flag = False
                 self.save_imgs=True
             self.list_path    = self.root_dir+"/data/list/"+self.data_list_file

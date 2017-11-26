@@ -8,6 +8,7 @@ import torch.optim as optim
 class Agent(object):
     def __init__(self, args, model_prototype):
         self.mode = args.mode
+        self.save_imgs = args.save_imgs
         if self.mode == 3 and self.save_imgs:
             try:
                 import scipy.misc
