@@ -1,17 +1,3 @@
-+data/*.pth
-+data/gt/
-+data/img/
-+data/snapshots/
-+data/*.caffemodel
-!data
-data/*gt
-data/*img
-data/*depth
-data/saved_semantic
-data/gt/**
-data/img/**
-data/*.pth
-data/snapshots/**
 deprecated/**
 # Byte-compiled / optimized / DLL files
 __pycache__/
