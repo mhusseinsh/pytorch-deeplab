@@ -20,7 +20,7 @@ class Params(object):   # NOTE: shared across all modules
 
         # training signature
         self.machine     = "hpcgpu2"    # "machine_id"
-        self.timestamp   = "17112600"   # "yymmdd## "
+        self.timestamp   = "17112601"   # "yymmdd## "
         # training configuration
         self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
@@ -80,7 +80,7 @@ class AgentParams(Params):  # settings for network architecture
             
             self.steps          = 5000 
             self.batch_size     = 1
-            self.lr             = 0.001
+            self.lr             = 0.00025
             self.lr_decay       = False
             self.weight_decay   = 0.0005
             self.epochs         = 100
@@ -101,7 +101,7 @@ class AgentParams(Params):  # settings for network architecture
                 # output which one in the 4 outputs
                 self.output_c         = 0  
                 self.segmentation_labels = 1
-                self.lr             = 0.00001
+                self.lr             = 0.0001
             
             self.data_list_file = "img_2500.txt"
             self.flip_flag          = True
