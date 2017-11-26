@@ -70,6 +70,7 @@ class AgentParams(Params):  # settings for network architecture
 
         if self.agent_type == "Deeplab":
             self.optim          = optim.SGD
+            self.criteria = nn.MSELoss()
             
             self.steps          = 5000 
             self.batch_size     = 1
