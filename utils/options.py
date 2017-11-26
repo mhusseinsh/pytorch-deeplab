@@ -80,7 +80,7 @@ class AgentParams(Params):  # settings for network architecture
             
             self.steps          = 5000 
             self.batch_size     = 1
-            self.lr             = 0.00001
+            self.lr             = 0.001
             self.lr_decay       = False
             self.weight_decay   = 0.0005
             self.epochs         = 100
