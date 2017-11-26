@@ -49,7 +49,12 @@ class Params(object):   # NOTE: shared across all modules
         if self.mode == 2:
             self.model_file  = self.model_name
             assert self.model_file is not None, "Pre-Trained model is None, Testing aborted!!!"
-            self.refs = self.refs + "_test"     
+            self.refs = self.refs + "_test"    
+        if self.mode ==3:
+            self.model_file  = self.model_name
+            assert self.model_file is not None, "Pre-Trained model is None, Testing aborted!!!"
+            self.refs = self.refs + "_generate" 
+
 
         # logging configs
         self.log_name    = self.root_dir + "/logs/" + self.refs + ".log"
@@ -71,6 +76,7 @@ class AgentParams(Params):  # settings for network architecture
         if self.agent_type == "Deeplab":
             self.optim          = optim.SGD
             self.criteria = nn.MSELoss()
+            self.save_imgs=False
             
             self.steps          = 5000 
             self.batch_size     = 1
