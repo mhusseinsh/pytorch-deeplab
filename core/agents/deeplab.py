@@ -207,7 +207,9 @@ class DeeplabAgent(Agent):
             images.append(img[np.newaxis, :])
             names_.append(piece)
         images = np.concatenate(images).transpose(0,3,1,2) 
-        imgs_vb = Variable(torch.from_numpy(images).type(self.dtype), volatile=volatile)
+        imgs_vb = Variable(
+                torch.from_numpy(images).type(self.dtype), 
+                volatile=volatile)
         return imgs_vb, names_
 
     def fit_model(self):
@@ -255,7 +257,8 @@ class DeeplabAgent(Agent):
                             gts_vb_list[self.output_c][0] \
                                     * self.enlarge_param,
                             self.step)
-                    out_img = torch.max(out_vb_list[self.output_c], 1)[1]
+                    out_img = torch.max(
+                            out_vb_list[self.output_c], 1)[1]
                     self.writer.add_image(self.refs+'/OUT',
                             out_img[0].float()*self.enlarge_param, 
                             self.step)
@@ -323,11 +326,19 @@ class DeeplabAgent(Agent):
         self.step = 0
         for self.step in range(self.max_iter):
             chunk = data_gen.next()
-            imgs_vb, pieces = self.get_generate_data_from_chunk(chunk, volatile=True)
+            imgs_vb, pieces = self.get_generate_data_from_chunk(
+                    chunk, volatile=True)
             out_vb_list = self.model(imgs_vb)
 
-            out_vb = torch.max(self.interp(out_vb_list[3]), 1)[1]
-            out_img = out_vb[0].cpu().data.numpy()
-            img=Image.fromarray(out_img.astype(np.uint8))
-            img.save(os.path.join(self.img_dir, pieces[0]+".png"))
+            if self.train_target=="semantic":
+                out_vb = torch.max(
+                        self.interp(out_vb_list[self.output_c]), 1)[1]
+                out_img = out_vb[0].cpu().data.numpy()
+                img=Image.fromarray(out_img.astype(np.uint8))
+                img.save(os.path.join(self.img_dir, pieces[0]+".png"))
+            elif self.train_target=="depth":
+                out_array = (out_vb_list[self.output_c][0]+1)*0.15
+                np.save(os.path.join(self.img_dir, pieces[0]+".npy"),
+                        out_array)
+
 
