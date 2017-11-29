@@ -75,9 +75,21 @@ def scale_im(img, scale, interpolation=cv2.INTER_LINEAR):
     new_dims = (int(img.shape[1]*scale),int(img.shape[0]*scale))
     return cv2.resize(img, new_dims, interpolation=interpolation)
 
-def flip(I,flip_p):
+def flip_lr(I,flip_p):
     if flip_p>0.5:
         return np.fliplr(I)
+    else:
+        return I
+
+def flip_ud(I,flip_p):
+    if flip_p>0.5:
+        return np.flipud(I)
+    else:
+        return I
+
+def rotate(I,rotate_p):
+    if flip_p>0.5:
+        return np.rot90(I)
     else:
         return I
 

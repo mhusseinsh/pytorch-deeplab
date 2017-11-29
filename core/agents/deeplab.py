@@ -20,7 +20,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 
-from utils.helpers import read_file, outS, chunker, scale_im, flip, adjust_learning_rate
+from utils.helpers import read_file, outS, chunker, scale_im, flip_lr, flip_ud, rotate, adjust_learning_rate
 from core.agent import Agent
 
 def get_1x_lr_params_NOscale(model):
@@ -91,6 +91,7 @@ class DeeplabAgent(Agent):
         self.train_target = args.train_target
         assert(self.train_target=="depth" or self.train_target=="semantic")
         self.flip_flag     = args.flip_flag
+        self.rotate_flag     = args.rotate_flag
         self.criteria = args.criteria
         if self.use_cuda:
             self.model.type(self.dtype)
@@ -171,8 +172,16 @@ class DeeplabAgent(Agent):
             
             if self.flip_flag: 
                 flip_p = random.uniform(0, 1)
-                img = flip(img, flip_p)
-                gt = flip(gt, flip_p)
+                img = flip_lr(img, flip_p)
+                gt = flip_lr(gt, flip_p)
+                flip_p = random.uniform(0, 1)
+                img = flip_ud(img, flip_p)
+                gt = flip_ud(gt, flip_p)
+            
+            if self.rotate_flag: 
+                rotate_p = random.uniform(0, 1)
+                img = rotate(img, rotate_p)
+                gt = rotate(gt, rotate_p)
             
             images.append(img[np.newaxis, :])
             gts.append(gt[np.newaxis, np.newaxis, :])

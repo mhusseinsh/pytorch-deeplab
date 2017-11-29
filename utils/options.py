@@ -105,6 +105,7 @@ class AgentParams(Params):  # settings for network architecture
             
             self.data_list_file = "img_2500.txt"
             self.flip_flag          = True
+            self.rotate_flag        = True
             self.crop_width       = 425
             self.crop_height      = 425
             self.scale_range      = [0.7, 0.9]
@@ -113,10 +114,11 @@ class AgentParams(Params):  # settings for network architecture
                 self.data_list_file  = "val.txt"
                 self.crop_width       = 1600
                 self.crop_height      = 900
-                self.batch_size = 1
-                self.epochs = 1
-                self.flip_flag = False
-                self.scale_range       = [0.2, 0.2]
+                self.batch_size       = 1
+                self.epochs           = 1
+                self.flip_flag        = False
+                self.rotate_flag      = False
+                self.scale_range      = [0.2, 0.2]
             elif self.mode==3:
                 self.crop_width       = 800
                 self.crop_height      = 600
