@@ -19,8 +19,8 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "hpcgpu2"    # "machine_id"
-        self.timestamp   = "17112602"   # "yymmdd## "
+        self.machine     = "hpcgpu7"    # "machine_id"
+        self.timestamp   = "17113000"   # "yymmdd## "
         # training configuration
         self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
@@ -44,8 +44,8 @@ class Params(object):   # NOTE: shared across all modules
         # NOTE: will save the current model to model_name
         self.model_name  = self.root_dir + "/models/" + self.refs + ".pth"
         # NOTE: will load pretrained model_file if not None
-        #self.model_file  = self.root_dir + "/models/pretrained.pth"
-        self.model_file  = None
+        self.model_file  = self.root_dir + "/models/pretrained.pth"
+        #self.model_file  = None
         if self.mode == 2:
             self.model_file  = self.model_name
             assert self.model_file is not None, "Pre-Trained model is None, Testing aborted!!!"
@@ -87,12 +87,12 @@ class AgentParams(Params):  # settings for network architecture
             self.test_steps     = 50
             self.save_freq      = 2000
             
-            self.img_path     = self.root_dir+"/data/img/"
-            self.gt_path      = self.root_dir+"/data/gt/"
-            self.img_extend_name    = '.png'
+            self.img_path     = self.root_dir+"/data/indoor_img/"
+            self.gt_path      = self.root_dir+"/data/indoor_gt/"
+            self.img_extend_name    = '.jpg'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
-            self.segmentation_labels = 13
+            self.segmentation_labels = 40
            
             if self.train_target == "depth":
                 self.criteria = nn.MSELoss()
@@ -103,7 +103,7 @@ class AgentParams(Params):  # settings for network architecture
                 self.segmentation_labels = 1
                 self.lr             = 0.001
             
-            self.data_list_file = "img_2500.txt"
+            self.data_list_file = "indoor_segment.txt"
             self.flip_flag          = True
             self.rotate_flag        = True
             self.crop_width       = 425
