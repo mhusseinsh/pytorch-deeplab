@@ -91,9 +91,7 @@ class DeeplabAgent(Agent):
         self.train_target = args.train_target
         assert(self.train_target=="depth" or self.train_target=="semantic")
         self.flip_flag     = args.flip_flag
-        if self.train_target == "depth":
-            self.criteria = args.criteria
-        
+        self.criteria = args.criteria
         if self.use_cuda:
             self.model.type(self.dtype)
 
@@ -229,7 +227,7 @@ class DeeplabAgent(Agent):
             loss = 0
             for i in range(len(out_vb_list)):
                 if self.train_target == "semantic":
-                    loss += F.nll_loss(F.log_softmax(out_vb_list[i]),
+                    loss += self.criteria(F.log_softmax(out_vb_list[i]),
                             gts_vb_list[i][0].long())
                 elif self.train_target == "depth":
                     if i< len(out_vb_list)-1:
