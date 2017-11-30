@@ -20,7 +20,7 @@ class Params(object):   # NOTE: shared across all modules
 
         # training signature
         self.machine     = "hpcgpu6"    # "machine_id"
-        self.timestamp   = "17113010"   # "yymmdd## "
+        self.timestamp   = "17113011"   # "yymmdd## "
         # training configuration
         self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
@@ -87,8 +87,8 @@ class AgentParams(Params):  # settings for network architecture
             self.test_steps     = 50
             self.save_freq      = 2000
             
-            self.img_path     = self.root_dir+"/data/img/"
-            self.gt_path      = self.root_dir+"/data/gt/"
+            self.img_path     = self.root_dir+"/data/gta_img/"
+            self.gt_path      = self.root_dir+"/data/gta_gt/"
             self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
@@ -103,7 +103,7 @@ class AgentParams(Params):  # settings for network architecture
                 self.segmentation_labels = 1
                 self.lr             = 0.001
             
-            self.data_list_file = "img_2500.txt"
+            self.data_list_file = "gta_2500.txt"
             self.lrflip_flag        = True
             self.udflip_flag        = True
             self.rotate_flag        = True

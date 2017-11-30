@@ -254,10 +254,9 @@ class DeeplabAgent(Agent):
                             #print ("after trans:", item)
                     #print (gts_vb_list[i].min())
                     #print (out_vb_list[i].max())
-                    loss += F.nll_loss(
+                    loss += self.criteria(
                             F.log_softmax(out_vb_list[i]),
-                            gts_vb_list[i][:,0,:,:].long(), 
-                            ignore_index=255)
+                            gts_vb_list[i][:,0,:,:].long())
                 elif self.train_target == "depth":
                     if i< len(out_vb_list)-1:
                         loss += self.criteria(out_vb_list[i],
