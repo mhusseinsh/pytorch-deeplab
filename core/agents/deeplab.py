@@ -247,20 +247,18 @@ class DeeplabAgent(Agent):
             loss = 0
             for i in range(len(out_vb_list)):
                 if self.train_target == "semantic":
-                    #loss += self.criteria(
+                    loss += self.criteria(
+                            F.log_softmax(out_vb_list[i]),
+                            gts_vb_list[i][:,0,:,:].long())
+                    #loss += F.nll_loss(
                             #F.log_softmax(out_vb_list[i]),
                             #gts_vb_list[i][:,0,:,:].long(),
                             #ignore_index=255)
-                    loss += F.nll_loss(
-                            F.log_softmax(out_vb_list[i]),
-                            gts_vb_list[i][:,0,:,:].long(),
-                            ignore_index=255)
                 elif self.train_target == "depth":
                     if i< len(out_vb_list)-1:
                         loss += self.criteria(out_vb_list[i],
                             gts_vb_list[i])
             loss = loss/self.iter_size
-            #print (loss)
             loss.backward()
             
             self.logger.warning("Iteration: {}; loss: {}".format(self.step, loss.data.cpu().numpy()*self.iter_size))
