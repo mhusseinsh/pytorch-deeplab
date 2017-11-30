@@ -109,13 +109,18 @@ class DeeplabAgent(Agent):
             self.resize_width = args.resize_width
             self.interp = nn.Upsample(size=(self.resize_height, self.resize_width), mode='bilinear')
 
-    def resize_label_batch(self, label, size, volatile=False):
-        label_resized = np.zeros((size[0],size[1],1,label.shape[3]))
-        interp = nn.Upsample(size=(size[0], size[1]), mode='bilinear')
-        labelVar = Variable(torch.from_numpy(label).type(self.dtype),
-                volatile=volatile)
-        label_resized = interp(labelVar)
-        return label_resized
+    def resize_label_batch(self, labels, size, volatile=False):
+        #interp = nn.Upsample(size=(size[0], size[1]), mode='nearest')
+        #labelVar = Variable(torch.from_numpy(label).type(self.dtype),
+                #volatile=volatile)
+        #label_resized = interp(labelVar)
+        labels_resized=[]
+        for item in labels:
+            label = cv2.resize(item, (size[1], size[0]), interpolation=cv2.INTER_NEAREST)[np.newaxis, np.newaxis, :]
+            labels_resized.append(label)
+        labels_resized = np.concatenate(labels_resized, axis=0)
+        label_vb = Variable(torch.from_numpy(labels_resized).type(self.dtype), volatile=volatile)
+        return label_vb
 
     def get_train_list(self):
         img_list = read_file(self.list_path)
@@ -130,6 +135,7 @@ class DeeplabAgent(Agent):
     def get_data_from_chunk(self, chunk, volatile=False):
         scale = random.uniform(self.scale_range[0], 
                 self.scale_range[1])
+        rotate_p = random.uniform(0, 1)
         dim = [int(scale*self.crop_height), 
                 int(scale*self.crop_width)]
         
@@ -142,9 +148,9 @@ class DeeplabAgent(Agent):
             if self.train_target=="semantic":
                 gt = np.array(Image.open(
                     os.path.join(self.gt_path, 
-                        piece+self.gt_extend_name)))
+                        piece+self.gt_extend_name))).astype(np.uint8)
             elif self.train_target=="depth":
-                gt = np.clip( np.load(os.path.join(self.gt_path, 
+                gt = np.clip(np.load(os.path.join(self.gt_path, 
                         piece+".npy")), a_min=0, a_max=0.3)/0.15 - 1
             if (gt.shape[0] < img.shape[0]):
                 img = cv2.resize(img,
@@ -170,6 +176,12 @@ class DeeplabAgent(Agent):
                 cw_start:cw_start+self.crop_width]
             gt = scale_im(gt, scale, cv2.INTER_NEAREST)
             
+            if self.rotate_flag:
+                img = rotate(img, rotate_p)
+                gt = rotate(gt, rotate_p)
+                if rotate_p>0.5:
+                    dim=[dim[1], dim[0]]
+
             if self.flip_flag: 
                 flip_p = random.uniform(0, 1)
                 img = flip_lr(img, flip_p)
@@ -178,18 +190,14 @@ class DeeplabAgent(Agent):
                 img = flip_ud(img, flip_p)
                 gt = flip_ud(gt, flip_p)
             
-            if self.rotate_flag: 
-                rotate_p = random.uniform(0, 1)
-                img = rotate(img, rotate_p)
-                gt = rotate(gt, rotate_p)
             
             images.append(img[np.newaxis, :])
-            gts.append(gt[np.newaxis, np.newaxis, :])
+            #gts.append(gt[np.newaxis, :])
+            gts.append(gt)
         
         images = np.concatenate(images).transpose(0,3,1,2) 
         imgs_vb = Variable(torch.from_numpy(images).type(self.dtype), volatile=volatile)
-        gts = np.concatenate(gts) 
-        print (gts.min(), gts.max())
+        #gts = np.concatenate(gts)
         a = outS(dim)
         b = outS([dim[0]*0.5+1, dim[1]*0.5+1])
         gts_vb_list = [self.resize_label_batch(gts, i, volatile) for i in [a,a,b,a]]
@@ -237,18 +245,23 @@ class DeeplabAgent(Agent):
             loss = 0
             for i in range(len(out_vb_list)):
                 if self.train_target == "semantic":
+                    #print (gts_vb_list[i].type)
+                    #gts = gts_vb_list[i][0].data.cpu().numpy()
+                    #for item in xrange(40,255):
+                        #if np.sum(gts==item)>0:
+                            #print ("after trans:", item)
                     #print (gts_vb_list[i].min())
                     #print (out_vb_list[i].max())
                     loss += F.nll_loss(
                             F.log_softmax(out_vb_list[i]),
-                            gts_vb_list[i][0].long(), 
+                            gts_vb_list[i][:,0,:,:].long(), 
                             ignore_index=255)
                 elif self.train_target == "depth":
                     if i< len(out_vb_list)-1:
                         loss += self.criteria(out_vb_list[i],
                             gts_vb_list[i])
             loss = loss/self.iter_size
-            print (loss)
+            #print (loss)
             loss.backward()
             
             self.logger.warning("Iteration: {}; loss: {}".format(self.step, loss.data.cpu().numpy()*self.iter_size))
