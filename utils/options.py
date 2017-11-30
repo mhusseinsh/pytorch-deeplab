@@ -107,9 +107,9 @@ class AgentParams(Params):  # settings for network architecture
             self.lrflip_flag        = True
             self.udflip_flag        = True
             self.rotate_flag        = True
-            self.crop_width       = 425
-            self.crop_height      = 425
-            self.scale_range      = [0.7, 0.9]
+            self.crop_width       = 513
+            self.crop_height      = 513
+            self.scale_range      = [0.6, 0.8]
             self.iter_size        = 8
             if self.mode==2:
                 self.data_list_file  = "val.txt"
