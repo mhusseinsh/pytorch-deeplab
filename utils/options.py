@@ -19,8 +19,8 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "pearl9"    # "machine_id"
-        self.timestamp   = "17113001"   # "yymmdd## "
+        self.machine     = "hpcgpu7"    # "machine_id"
+        self.timestamp   = "17113000"   # "yymmdd## "
         # training configuration
         self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
@@ -80,7 +80,7 @@ class AgentParams(Params):  # settings for network architecture
             
             self.steps          = 5000 
             self.batch_size     = 1
-            self.lr             = 0.0002
+            self.lr             = 0.00025
             self.lr_decay       = False
             self.weight_decay   = 0.0005
             self.epochs         = 100
@@ -117,7 +117,8 @@ class AgentParams(Params):  # settings for network architecture
                 self.crop_height      = 900
                 self.batch_size       = 1
                 self.epochs           = 1
-                self.flip_flag        = False
+                self.lrflip_flag      = True
+                self.udflip_flag      = False    
                 self.rotate_flag      = False
                 self.scale_range      = [0.2, 0.2]
             elif self.mode==3:
@@ -128,9 +129,11 @@ class AgentParams(Params):  # settings for network architecture
                 self.batch_size = 1
                 self.epochs = 1
                 self.data_list_file  = "img_train03_B.txt"
-                self.img_path     = self.root_dir+"/data/train03_B"
-                self.flip_flag = False
-                self.save_imgs=True
+                self.img_path        = self.root_dir+"/data/train03_B"
+                self.lrflip_flag     = True
+                self.udflip_flag     = False    
+                self.rotate_flag     = False
+                self.save_imgs       = True
             self.list_path    = self.root_dir+"/data/list/"+self.data_list_file
 
         self.model_params       = self.segmentation_labels
