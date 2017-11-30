@@ -90,7 +90,8 @@ class DeeplabAgent(Agent):
         self.gt_path = args.gt_path
         self.train_target = args.train_target
         assert(self.train_target=="depth" or self.train_target=="semantic")
-        self.flip_flag     = args.flip_flag
+        self.lrflip_flag     = args.lrflip_flag
+        self.udflip_flag     = args.udflip_flag
         self.rotate_flag     = args.rotate_flag
         self.criteria = args.criteria
         if self.use_cuda:
@@ -182,10 +183,11 @@ class DeeplabAgent(Agent):
                 if rotate_p>0.5:
                     dim=[dim[1], dim[0]]
 
-            if self.flip_flag: 
+            if self.lrflip_flag: 
                 flip_p = random.uniform(0, 1)
                 img = flip_lr(img, flip_p)
                 gt = flip_lr(gt, flip_p)
+            if self.udflip_flag:
                 flip_p = random.uniform(0, 1)
                 img = flip_ud(img, flip_p)
                 gt = flip_ud(gt, flip_p)

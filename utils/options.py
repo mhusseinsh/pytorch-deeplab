@@ -19,8 +19,8 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "hpcgpu7"    # "machine_id"
-        self.timestamp   = "17113000"   # "yymmdd## "
+        self.machine     = "pearl9"    # "machine_id"
+        self.timestamp   = "17113001"   # "yymmdd## "
         # training configuration
         self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
@@ -76,11 +76,11 @@ class AgentParams(Params):  # settings for network architecture
         if self.agent_type == "Deeplab":
             self.optim          = optim.SGD
             self.criteria       = nn.NLLLoss2d(ignore_index=255)
-            self.save_imgs=False
+            self.save_imgs      = False
             
             self.steps          = 5000 
             self.batch_size     = 1
-            self.lr             = 0.00025
+            self.lr             = 0.0002
             self.lr_decay       = False
             self.weight_decay   = 0.0005
             self.epochs         = 100
@@ -104,8 +104,9 @@ class AgentParams(Params):  # settings for network architecture
                 self.lr             = 0.001
             
             self.data_list_file = "indoor_segment_new.txt"
-            self.flip_flag          = True
-            self.rotate_flag        = True
+            self.lrflip_flag        = True
+            self.udflip_flag        = False    
+            self.rotate_flag        = False
             self.crop_width       = 425
             self.crop_height      = 425
             self.scale_range      = [0.7, 0.9]
