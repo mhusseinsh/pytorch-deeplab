@@ -105,7 +105,7 @@ class AgentParams(Params):  # settings for network architecture
             
             self.data_list_file = "indoor_segment_new.txt"
             self.lrflip_flag        = True
-            self.udflip_flag        = False
+            self.udflip_flag        = True
             self.rotate_flag        = False
             self.crop_width       = 425
             self.crop_height      = 425
