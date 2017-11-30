@@ -24,7 +24,7 @@ class Params(object):   # NOTE: shared across all modules
         # training configuration
         self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
-        self.train_target   = "depth" # depth|semantic
+        self.train_target   = "semantic" # depth|semantic
         
         self.seed        = 1
         self.render      = False        # whether render the window from the original envs or not
@@ -103,7 +103,7 @@ class AgentParams(Params):  # settings for network architecture
                 self.segmentation_labels = 1
                 self.lr             = 0.001
             
-            self.data_list_file = "indoor_segment.txt"
+            self.data_list_file = "indoor_segment_new.txt"
             self.flip_flag          = True
             self.rotate_flag        = True
             self.crop_width       = 425

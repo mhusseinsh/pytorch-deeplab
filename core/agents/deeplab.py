@@ -19,7 +19,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
-
+import heapq
 from utils.helpers import read_file, outS, chunker, scale_im, flip_lr, flip_ud, rotate, adjust_learning_rate
 from core.agent import Agent
 
@@ -189,6 +189,7 @@ class DeeplabAgent(Agent):
         images = np.concatenate(images).transpose(0,3,1,2) 
         imgs_vb = Variable(torch.from_numpy(images).type(self.dtype), volatile=volatile)
         gts = np.concatenate(gts) 
+        print (gts.min(), gts.max())
         a = outS(dim)
         b = outS([dim[0]*0.5+1, dim[1]*0.5+1])
         gts_vb_list = [self.resize_label_batch(gts, i, volatile) for i in [a,a,b,a]]
@@ -236,13 +237,18 @@ class DeeplabAgent(Agent):
             loss = 0
             for i in range(len(out_vb_list)):
                 if self.train_target == "semantic":
-                    loss += self.criteria(F.log_softmax(out_vb_list[i]),
-                            gts_vb_list[i][0].long())
+                    #print (gts_vb_list[i].min())
+                    #print (out_vb_list[i].max())
+                    loss += F.nll_loss(
+                            F.log_softmax(out_vb_list[i]),
+                            gts_vb_list[i][0].long(), 
+                            ignore_index=255)
                 elif self.train_target == "depth":
                     if i< len(out_vb_list)-1:
                         loss += self.criteria(out_vb_list[i],
                             gts_vb_list[i])
             loss = loss/self.iter_size
+            print (loss)
             loss.backward()
             
             self.logger.warning("Iteration: {}; loss: {}".format(self.step, loss.data.cpu().numpy()*self.iter_size))

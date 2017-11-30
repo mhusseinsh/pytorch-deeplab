@@ -88,7 +88,7 @@ def flip_ud(I,flip_p):
         return I
 
 def rotate(I,rotate_p):
-    if flip_p>0.5:
+    if rotate_p>0.5:
         return np.rot90(I)
     else:
         return I
