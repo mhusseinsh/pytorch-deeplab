@@ -247,16 +247,14 @@ class DeeplabAgent(Agent):
             loss = 0
             for i in range(len(out_vb_list)):
                 if self.train_target == "semantic":
-                    #print (gts_vb_list[i].type)
-                    #gts = gts_vb_list[i][0].data.cpu().numpy()
-                    #for item in xrange(40,255):
-                        #if np.sum(gts==item)>0:
-                            #print ("after trans:", item)
-                    #print (gts_vb_list[i].min())
-                    #print (out_vb_list[i].max())
-                    loss += self.criteria(
+                    #loss += self.criteria(
+                            #F.log_softmax(out_vb_list[i]),
+                            #gts_vb_list[i][:,0,:,:].long(),
+                            #ignore_index=255)
+                    loss += F.nll_loss(
                             F.log_softmax(out_vb_list[i]),
-                            gts_vb_list[i][:,0,:,:].long())
+                            gts_vb_list[i][:,0,:,:].long(),
+                            ignore_index=255)
                 elif self.train_target == "depth":
                     if i< len(out_vb_list)-1:
                         loss += self.criteria(out_vb_list[i],

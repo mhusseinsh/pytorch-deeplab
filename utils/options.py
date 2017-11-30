@@ -92,7 +92,7 @@ class AgentParams(Params):  # settings for network architecture
             self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
-            self.segmentation_labels = 13
+            self.segmentation_labels = 35
            
             if self.train_target == "depth":
                 self.criteria = nn.MSELoss()
