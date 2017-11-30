@@ -19,8 +19,8 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "hpcgpu7"    # "machine_id"
-        self.timestamp   = "17113003"   # "yymmdd## "
+        self.machine     = "hpcgpu6"    # "machine_id"
+        self.timestamp   = "17113010"   # "yymmdd## "
         # training configuration
         self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
@@ -87,12 +87,12 @@ class AgentParams(Params):  # settings for network architecture
             self.test_steps     = 50
             self.save_freq      = 2000
             
-            self.img_path     = self.root_dir+"/data/indoor_img/"
-            self.gt_path      = self.root_dir+"/data/indoor_gt/"
-            self.img_extend_name    = '.jpg'
+            self.img_path     = self.root_dir+"/data/img/"
+            self.gt_path      = self.root_dir+"/data/gt/"
+            self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
-            self.segmentation_labels = 40
+            self.segmentation_labels = 13
            
             if self.train_target == "depth":
                 self.criteria = nn.MSELoss()
@@ -103,7 +103,7 @@ class AgentParams(Params):  # settings for network architecture
                 self.segmentation_labels = 1
                 self.lr             = 0.001
             
-            self.data_list_file = "indoor_segment_new.txt"
+            self.data_list_file = "img_2500.txt"
             self.lrflip_flag        = True
             self.udflip_flag        = True
             self.rotate_flag        = True
