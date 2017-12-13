@@ -19,8 +19,8 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "hpcgpu6"    # "machine_id"
-        self.timestamp   = "17113011"   # "yymmdd## "
+        self.machine     = "hpcgpu3"    # "machine_id"
+        self.timestamp   = "17121300"   # "yymmdd## "
         # training configuration
         self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
@@ -80,15 +80,15 @@ class AgentParams(Params):  # settings for network architecture
             
             self.steps          = 5000 
             self.batch_size     = 1
-            self.lr             = 0.00001
+            self.lr             = 0.00025
             self.lr_decay       = False
             self.weight_decay   = 0.0005
             self.epochs         = 100
             self.test_steps     = 50
             self.save_freq      = 2000
             
-            self.img_path     = self.root_dir+"/data/gta_img/"
-            self.gt_path      = self.root_dir+"/data/gta_gt/"
+            self.img_path     = self.root_dir+"/data/cloudy2wet_img/"
+            self.gt_path      = self.root_dir+"/data/cloudy2wet_gt/"
             self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
@@ -103,13 +103,13 @@ class AgentParams(Params):  # settings for network architecture
                 self.segmentation_labels = 1
                 self.lr             = 0.001
             
-            self.data_list_file = "gta_2500.txt"
-            self.lrflip_flag        = True
-            self.udflip_flag        = True
-            self.rotate_flag        = True
-            self.crop_width       = 513
-            self.crop_height      = 513
-            self.scale_range      = [0.6, 0.8]
+            self.data_list_file = "cloudy2wet_256.txt"
+            self.lrflip_flag        = False
+            self.udflip_flag        = False
+            self.rotate_flag        = False
+            self.crop_width       = 256
+            self.crop_height      = 256
+            self.scale_range      = [0.8, 1.5]
             self.iter_size        = 8
             if self.mode==2:
                 self.data_list_file  = "val.txt"
