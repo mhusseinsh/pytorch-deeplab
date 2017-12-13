@@ -20,7 +20,7 @@ class Params(object):   # NOTE: shared across all modules
 
         # training signature
         self.machine     = "hpcgpu3"    # "machine_id"
-        self.timestamp   = "17121300"   # "yymmdd## "
+        self.timestamp   = "17121301"   # "yymmdd## "
         # training configuration
         self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
@@ -87,8 +87,8 @@ class AgentParams(Params):  # settings for network architecture
             self.test_steps     = 50
             self.save_freq      = 2000
             
-            self.img_path     = self.root_dir+"/data/cloudy2wet_img/"
-            self.gt_path      = self.root_dir+"/data/cloudy2wet_gt/"
+            self.img_path     = self.root_dir+"/data/indoor_img/"
+            self.gt_path      = self.root_dir+"/data/indoor_gt/"
             self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
@@ -107,9 +107,9 @@ class AgentParams(Params):  # settings for network architecture
             self.lrflip_flag        = False
             self.udflip_flag        = False
             self.rotate_flag        = False
-            self.crop_width       = 256
-            self.crop_height      = 256
-            self.scale_range      = [0.8, 1.5]
+            self.crop_width       = 480
+            self.crop_height      = 480
+            self.scale_range      = [0.5, 0.8]
             self.iter_size        = 8
             if self.mode==2:
                 self.data_list_file  = "val.txt"
