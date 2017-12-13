@@ -89,10 +89,10 @@ class AgentParams(Params):  # settings for network architecture
             
             self.img_path     = self.root_dir+"/data/indoor_img/"
             self.gt_path      = self.root_dir+"/data/indoor_gt/"
-            self.img_extend_name    = '.png'
+            self.img_extend_name    = '.jpg'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
-            self.segmentation_labels = 35
+            self.segmentation_labels = 40
            
             if self.train_target == "depth":
                 self.criteria = nn.MSELoss()
@@ -103,8 +103,8 @@ class AgentParams(Params):  # settings for network architecture
                 self.segmentation_labels = 1
                 self.lr             = 0.001
             
-            self.data_list_file = "cloudy2wet_256.txt"
-            self.lrflip_flag        = False
+            self.data_list_file = "indoor_segment_new.txt"
+            self.lrflip_flag        = True
             self.udflip_flag        = False
             self.rotate_flag        = False
             self.crop_width       = 480
