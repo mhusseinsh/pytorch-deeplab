@@ -19,10 +19,10 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "hpcgpu3"    # "machine_id"
-        self.timestamp   = "17121301"   # "yymmdd## "
+        self.machine     = "hpcgpu1"    # "machine_id"
+        self.timestamp   = "18010190"   # "yymmdd## "
         # training configuration
-        self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
+        self.mode        = 3            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
         self.train_target   = "semantic" # depth|semantic
         
@@ -89,10 +89,10 @@ class AgentParams(Params):  # settings for network architecture
             
             self.img_path     = self.root_dir+"/data/indoor_img/"
             self.gt_path      = self.root_dir+"/data/indoor_gt/"
-            self.img_extend_name    = '.jpg'
+            self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
-            self.segmentation_labels = 40
+            self.segmentation_labels = 13
            
             if self.train_target == "depth":
                 self.criteria = nn.MSELoss()
@@ -122,15 +122,15 @@ class AgentParams(Params):  # settings for network architecture
                 self.rotate_flag      = False
                 self.scale_range      = [0.2, 0.2]
             elif self.mode==3:
-                self.crop_width       = 800
-                self.crop_height      = 600
-                self.resize_width     = 800
-                self.resize_height    = 600
+                self.crop_width       = 456
+                self.crop_height      = 256
+                self.resize_width     = 456
+                self.resize_height    = 256
                 self.batch_size = 1
                 self.epochs = 1
-                self.data_list_file  = "img_train03_B.txt"
-                self.img_path        = self.root_dir+"/data/train03_B"
-                self.lrflip_flag     = True
+                self.data_list_file  = "robotcar_test_256.txt"
+                self.img_path        = self.root_dir+"/data/robotcar_test_256"
+                self.lrflip_flag     = False
                 self.udflip_flag     = False    
                 self.rotate_flag     = False
                 self.save_imgs       = True
