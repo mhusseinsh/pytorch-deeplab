@@ -87,8 +87,8 @@ class AgentParams(Params):  # settings for network architecture
             self.test_steps     = 50
             self.save_freq      = 2000
             
-            self.img_path     = self.root_dir+"/data/indoor_img/"
-            self.gt_path      = self.root_dir+"/data/indoor_gt/"
+            self.img_path     = self.root_dir+"/data/carla_img/"
+            self.gt_path      = self.root_dir+"/data/carla_gt/"
             self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
@@ -103,7 +103,7 @@ class AgentParams(Params):  # settings for network architecture
                 self.segmentation_labels = 1
                 self.lr             = 0.001
             
-            self.data_list_file = "indoor_segment_new.txt"
+            self.data_list_file = "img_train03_A.txt"
             self.lrflip_flag        = True
             self.udflip_flag        = False
             self.rotate_flag        = False
