@@ -19,13 +19,13 @@ class Params(object):   # NOTE: shared across all modules
         self.verbose     = 0            # 0(warning) | 1(info) | 2(debug)
 
         # training signature
-        self.machine     = "hpcgpu1"    # "machine_id"
-        self.timestamp   = "18010190"   # "yymmdd## "
+        self.machine     = "hpcgpu2"    # "machine_id"
+        self.timestamp   = "17112500"   # "yymmdd## "
         # training configuration
         self.mode        = 3            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
         self.train_target   = "semantic" # depth|semantic
-        
+
         self.seed        = 1
         self.render      = False        # whether render the window from the original envs or not
         self.visualize   = True         # whether do online plotting and stuff or not
@@ -49,11 +49,11 @@ class Params(object):   # NOTE: shared across all modules
         if self.mode == 2:
             self.model_file  = self.model_name
             assert self.model_file is not None, "Pre-Trained model is None, Testing aborted!!!"
-            self.refs = self.refs + "_test"    
+            self.refs = self.refs + "_test"
         if self.mode ==3:
             self.model_file  = self.model_name
             assert self.model_file is not None, "Pre-Trained model is None, Testing aborted!!!"
-            self.refs = self.refs + "_generate" 
+            self.refs = self.refs + "_generate"
 
 
         # logging configs
@@ -77,8 +77,8 @@ class AgentParams(Params):  # settings for network architecture
             self.optim          = optim.SGD
             self.criteria       = nn.NLLLoss2d(ignore_index=255)
             self.save_imgs      = False
-            
-            self.steps          = 5000 
+
+            self.steps          = 5000
             self.batch_size     = 1
             self.lr             = 0.00025
             self.lr_decay       = False
@@ -86,23 +86,23 @@ class AgentParams(Params):  # settings for network architecture
             self.epochs         = 100
             self.test_steps     = 50
             self.save_freq      = 2000
-            
+
             self.img_path     = self.root_dir+"/data/carla_img/"
             self.gt_path      = self.root_dir+"/data/carla_gt/"
             self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
             self.segmentation_labels = 13
-           
+
             if self.train_target == "depth":
                 self.criteria = nn.MSELoss()
                 self.gt_path = self.root_dir+"/data/depth/"
                 self.gt_extend_name = '.npy'
                 # output which one in the 4 outputs
-                self.output_c         = 0  
+                self.output_c         = 0
                 self.segmentation_labels = 1
                 self.lr             = 0.001
-            
+
             self.data_list_file = "img_train03_A.txt"
             self.lrflip_flag        = True
             self.udflip_flag        = False
@@ -118,7 +118,7 @@ class AgentParams(Params):  # settings for network architecture
                 self.batch_size       = 1
                 self.epochs           = 1
                 self.lrflip_flag      = True
-                self.udflip_flag      = False    
+                self.udflip_flag      = False
                 self.rotate_flag      = False
                 self.scale_range      = [0.2, 0.2]
             elif self.mode==3:
@@ -128,13 +128,13 @@ class AgentParams(Params):  # settings for network architecture
                 self.resize_height    = 256
                 self.batch_size = 1
                 self.epochs = 1
-                self.data_list_file  = "robotcar_test_256.txt"
-                self.img_path        = self.root_dir+"/data/robotcar_test_256"
+                self.data_list_file  = "train03_A.txt"
+                self.img_path        = self.root_dir+"/data/train03_A"
                 self.lrflip_flag     = False
-                self.udflip_flag     = False    
+                self.udflip_flag     = False
                 self.rotate_flag     = False
                 self.save_imgs       = True
-            self.list_path    = self.root_dir+"/data/list/"+self.data_list_file
+            self.list_path    = self.root_dir+"/data/"+self.data_list_file
 
         self.model_params       = self.segmentation_labels
 

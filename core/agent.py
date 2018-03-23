@@ -9,6 +9,7 @@ class Agent(object):
     def __init__(self, args, model_prototype):
         self.mode = args.mode
         self.save_imgs = args.save_imgs
+        self.logger = args.logger
         if self.mode == 3 and self.save_imgs:
             try:
                 import scipy.misc
@@ -18,7 +19,6 @@ class Agent(object):
             if not os.path.exists(self.img_dir):
                 os.makedirs(self.img_dir)
         # logging
-        self.logger = args.logger
 
         self.refs = args.refs
         self.root_dir = args.root_dir
