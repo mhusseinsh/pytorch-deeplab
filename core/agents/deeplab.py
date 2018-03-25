@@ -104,7 +104,7 @@ class DeeplabAgent(Agent):
 
         self.enlarge_param = 1.0 / args.segmentation_labels
         self.interp = nn.Upsample(size=(self.crop_height, self.crop_width), mode='bilinear')
-        
+
         if self.mode==3:
             self.resize_height = args.resize_height
             self.resize_width = args.resize_width
@@ -132,26 +132,26 @@ class DeeplabAgent(Agent):
                 np.random.shuffle(img_list)
             data_list.extend(img_list)
         return data_list
-    
+
     def get_data_from_chunk(self, chunk, volatile=False):
-        scale = random.uniform(self.scale_range[0], 
+        scale = random.uniform(self.scale_range[0],
                 self.scale_range[1])
         rotate_p = random.uniform(0, 1)
-        dim = [int(scale*self.crop_height), 
+        dim = [int(scale*self.crop_height),
                 int(scale*self.crop_width)]
-        
+
         images = []
         gts = []
         for i, piece in enumerate(chunk):
             img = cv2.imread(
-                    os.path.join(self.img_path, 
+                    os.path.join(self.img_path,
                         piece+self.img_extend_name))
             if self.train_target=="semantic":
                 gt = np.array(Image.open(
-                    os.path.join(self.gt_path, 
+                    os.path.join(self.gt_path,
                         piece+self.gt_extend_name))).astype(np.uint8)
             elif self.train_target=="depth":
-                gt = np.clip(np.load(os.path.join(self.gt_path, 
+                gt = np.clip(np.load(os.path.join(self.gt_path,
                         piece+".npy")), a_min=0, a_max=0.3)/0.15 - 1
             if (gt.shape[0] < img.shape[0]):
                 img = cv2.resize(img,
@@ -162,28 +162,28 @@ class DeeplabAgent(Agent):
                         (img.shape[1], img.shape[0]),
                         interpolation=cv2.INTER_NEAREST)
             assert (gt.shape[0] >= self.crop_height)
-            
+
             ch_start= random.randint(0, img.shape[0]-self.crop_height)
             cw_start = random.randint(0, img.shape[1]-self.crop_width)
-            
-            img = img[ch_start:ch_start+self.crop_height, 
+
+            img = img[ch_start:ch_start+self.crop_height,
                     cw_start:cw_start+self.crop_width]
             img = scale_im(img, scale).astype(np.float32)
             img[:,:,0] = img[:,:,0] - 104.008
             img[:,:,1] = img[:,:,1] - 116.669
             img[:,:,2] = img[:,:,2] - 122.675
-            
-            gt = gt[ch_start:ch_start+self.crop_height, 
+
+            gt = gt[ch_start:ch_start+self.crop_height,
                 cw_start:cw_start+self.crop_width]
             gt = scale_im(gt, scale, cv2.INTER_NEAREST)
-            
+
             if self.rotate_flag:
                 img = rotate(img, rotate_p)
                 gt = rotate(gt, rotate_p)
                 if rotate_p>0.5:
                     dim=[dim[1], dim[0]]
 
-            if self.lrflip_flag: 
+            if self.lrflip_flag:
                 flip_p = random.uniform(0, 1)
                 img = flip_lr(img, flip_p)
                 gt = flip_lr(gt, flip_p)
@@ -191,42 +191,41 @@ class DeeplabAgent(Agent):
                 flip_p = random.uniform(0, 1)
                 img = flip_ud(img, flip_p)
                 gt = flip_ud(gt, flip_p)
-            
-            
+
             images.append(img[np.newaxis, :])
             #gts.append(gt[np.newaxis, :])
             gts.append(gt)
-        
-        images = np.concatenate(images).transpose(0,3,1,2) 
+
+        images = np.concatenate(images).transpose(0,3,1,2)
         imgs_vb = Variable(torch.from_numpy(images).type(self.dtype), volatile=volatile)
         #gts = np.concatenate(gts)
         a = outS(dim)
         b = outS([dim[0]*0.5+1, dim[1]*0.5+1])
         gts_vb_list = [self.resize_label_batch(gts, i, volatile) for i in [a,a,b,a]]
         return imgs_vb, gts_vb_list
-    
+
     def get_generate_data_from_chunk(self, chunk, volatile=True):
         images = []
         names_ = []
         for i, piece in enumerate(chunk):
             img = cv2.imread(
-                    os.path.join(self.img_path, 
+                    os.path.join(self.img_path,
                         piece+self.img_extend_name))
             ch_start= int(img.shape[0]-self.crop_height)
             cw_start = int(img.shape[1]-self.crop_width)
-            img = img[ch_start:ch_start+self.crop_height, 
+            img = img[ch_start:ch_start+self.crop_height,
                     cw_start:cw_start+self.crop_width]
-            img = cv2.resize(img, 
-                    (self.resize_width, 
+            img = cv2.resize(img,
+                    (self.resize_width,
                         self.resize_width)).astype(np.float32)
             img[:,:,0] = img[:,:,0] - 104.008
             img[:,:,1] = img[:,:,1] - 116.669
             img[:,:,2] = img[:,:,2] - 122.675
             images.append(img[np.newaxis, :])
             names_.append(piece)
-        images = np.concatenate(images).transpose(0,3,1,2) 
+        images = np.concatenate(images).transpose(0,3,1,2)
         imgs_vb = Variable(
-                torch.from_numpy(images).type(self.dtype), 
+                torch.from_numpy(images).type(self.dtype),
                 volatile=volatile)
         return imgs_vb, names_
 
@@ -260,37 +259,37 @@ class DeeplabAgent(Agent):
                             gts_vb_list[i])
             loss = loss/self.iter_size
             loss.backward()
-            
+
             self.logger.warning("Iteration: {}; loss: {}".format(self.step, loss.data.cpu().numpy()*self.iter_size))
             if self.step % self.iter_size == 0:
                 self.optim.step()
                 self.optim.zero_grad()
-                self.lr_poly() 
+                self.lr_poly()
                 adjust_learning_rate(self.optim, self.lr)
                 self.logger.warning("Learning_rate: {}".format(self.lr))
 
             if self.visualize:
-                self.writer.add_scalar(self.refs+'/loss', 
+                self.writer.add_scalar(self.refs+'/loss',
                         self.iter_size*loss.data[0], self.step)
-                self.writer.add_image(self.refs+'/RAW', 
+                self.writer.add_image(self.refs+'/RAW',
                         self.img_transfer(imgs_vb[0]),
                         self.step)
                 if self.train_target == "semantic":
-                    self.writer.add_image(self.refs+'/GT', 
+                    self.writer.add_image(self.refs+'/GT',
                             gts_vb_list[self.output_c][0] \
                                     * self.enlarge_param,
                             self.step)
                     out_img = torch.max(
                             out_vb_list[self.output_c], 1)[1]
                     self.writer.add_image(self.refs+'/OUT',
-                            out_img[0].float()*self.enlarge_param, 
+                            out_img[0].float()*self.enlarge_param,
                             self.step)
                 elif self.train_target == "depth":
-                    self.writer.add_image(self.refs+'/GT', 
+                    self.writer.add_image(self.refs+'/GT',
                             (gts_vb_list[self.output_c][0]+1)/2,
                             self.step)
                     self.writer.add_image(self.refs+'/OUT',
-                            (out_vb_list[self.output_c][0]+1)/2, 
+                            (out_vb_list[self.output_c][0]+1)/2,
                             self.step)
 
             if self.step % self.save_freq==0:
@@ -318,29 +317,27 @@ class DeeplabAgent(Agent):
             chunk = data_gen.next()
             imgs_vb, gts_vb_list = self.get_data_from_chunk(chunk, volatile=True)
             out_vb_list = self.model(imgs_vb)
-            
             output = self.interp(out_vb_list[self.output_c])
             out_img = torch.max(output,1)[1][0]
-            
             if self.visualize:
-                self.writer.add_image(self.refs+'/RAW', 
+                self.writer.add_image(self.refs+'/RAW',
                         self.img_transfer(imgs_vb[0]),
                         self.step)
-                self.writer.add_image(self.refs+'/GT', 
+                self.writer.add_image(self.refs+'/GT',
                         gts_vb_list[self.output_c][0].float() \
-                                * self.enlarge_param, 
+                                * self.enlarge_param,
                         self.step)
                 out_img = torch.max(out_vb_list[self.output_c], 1)[1]
                 self.writer.add_image(self.refs+'/OUT',
-                        out_img[0].float()*self.enlarge_param, 
+                        out_img[0].float()*self.enlarge_param,
                         self.step)
         self.writer.close()
-    
+
     def img_transfer(self, img_vb):
         return torch.cat((img_vb[2:,:,:]+122.675,
-                    img_vb[1:2,:,:]+116.669, 
+                    img_vb[1:2,:,:]+116.669,
                     img_vb[0:1,:,:]+104.008),
-                    dim=0)/255 
+                    dim=0)/255
 
     def generate_model(self):
         self._load_model(self.model_name)

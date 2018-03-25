@@ -122,10 +122,10 @@ class AgentParams(Params):  # settings for network architecture
                 self.rotate_flag      = False
                 self.scale_range      = [0.2, 0.2]
             elif self.mode==3:
-                self.crop_width       = 456
-                self.crop_height      = 256
-                self.resize_width     = 456
-                self.resize_height    = 256
+                self.crop_width       = 640
+                self.crop_height      = 400
+                self.resize_width     = 640
+                self.resize_height    = 400
                 self.batch_size = 1
                 self.epochs = 1
                 self.data_list_file  = "train03_A.txt"
