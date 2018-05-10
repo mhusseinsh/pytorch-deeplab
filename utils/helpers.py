@@ -69,7 +69,7 @@ def read_file(path_to_file):
     return img_list
 
 def chunker(seq, size=1):
-    return (seq[pos:pos+size] for pos in xrange(0,len(seq), size))
+    return (seq[pos:pos+size] for pos in range(0,len(seq), size))
 
 def scale_im(img, scale, interpolation=cv2.INTER_LINEAR):
     new_dims = (int(img.shape[1]*scale),int(img.shape[0]*scale))
