@@ -22,7 +22,7 @@ class Params(object):   # NOTE: shared across all modules
         self.machine     = "hpcgpu2"    # "machine_id"
         self.timestamp   = "17112500"   # "yymmdd## "
         # training configuration
-        self.mode        = 3            # 1(train) | 2(test) | 3(generate image)
+        self.mode        = 1            # 1(train) | 2(test) | 3(generate image)
         self.config      = 0
         self.train_target   = "semantic" # depth|semantic
 
@@ -87,8 +87,8 @@ class AgentParams(Params):  # settings for network architecture
             self.test_steps     = 50
             self.save_freq      = 2000
 
-            self.img_path     = self.root_dir+"/data/carla_img/"
-            self.gt_path      = self.root_dir+"/data/carla_gt/"
+            self.img_path     = self.root_dir+"/data/img/"
+            self.gt_path      = self.root_dir+"/data/gt/"
             self.img_extend_name    = '.png'
             self.gt_extend_name     = '.png'
             self.output_c         = 3  # output which one in the 4 outputs
@@ -103,7 +103,7 @@ class AgentParams(Params):  # settings for network architecture
                 self.segmentation_labels = 1
                 self.lr             = 0.001
 
-            self.data_list_file = "img_train03_A.txt"
+            self.data_list_file = "img_list.txt"
             self.lrflip_flag        = True
             self.udflip_flag        = False
             self.rotate_flag        = False
@@ -128,8 +128,8 @@ class AgentParams(Params):  # settings for network architecture
                 self.resize_height    = 400
                 self.batch_size = 1
                 self.epochs = 1
-                self.data_list_file  = "train03_A.txt"
-                self.img_path        = self.root_dir+"/data/train03_A"
+                self.data_list_file  = "img_list.txt"
+                self.img_path        = self.root_dir+"/data/img"
                 self.lrflip_flag     = False
                 self.udflip_flag     = False
                 self.rotate_flag     = False
